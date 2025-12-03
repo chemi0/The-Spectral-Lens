@@ -62,12 +62,15 @@ int main()
 		double frameStartTime = glfwGetTime();
 		deltaTime = frameStartTime - lastFrameTime;
 		lastFrameTime = frameStartTime;
+		
+		// Update input animation state
+		input.update(static_cast<float>(deltaTime));
 
 		// Clear screen
 		glClear(GL_COLOR_BUFFER_BIT);
 
 		// Render the scene
-		renderer.render();
+		renderer.render(input);
 
 		glfwSwapBuffers(window);
 		glfwPollEvents();
