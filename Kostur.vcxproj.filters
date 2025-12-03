@@ -21,6 +21,12 @@
     <ClCompile Include="Source\Util.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Source\InputManager.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Renderer.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Header\stb_image.h">
@@ -29,8 +35,16 @@
     <ClInclude Include="Header\Util.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Header\InputManager.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Header\Renderer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
+    <None Include="Shaders\scene.vert" />
+    <None Include="Shaders\scene.frag" />
   </ItemGroup>
 </Project>
