@@ -1,5 +1,6 @@
 #include "../Header/Renderer.h"
 #include "../Header/Util.h"
+#include "../Header/InputManager.h"
 #include <iostream>
 
 Renderer::Renderer() :
@@ -9,6 +10,7 @@ Renderer::Renderer() :
 	m_quadVAO(0),
 	m_quadVBO(0),
 	m_backgroundTexture(0),
+	m_hiddenTexture(0),
 	m_projectionLoc(-1) {}
 
 Renderer::~Renderer() {
@@ -44,6 +46,16 @@ bool Renderer::initialize(int windowWidth, int windowHeight) {
 		std::cout << "Background texture loaded successfully." << std::endl;
 	}
 
+	// Load the hidden texture (with fallback to placeholder, the ACTUAL texture will be added later, this is just for testing right now)
+	m_hiddenTexture = loadImageToTexture("Resources/forest_hidden.png");
+	if (m_hiddenTexture == 0) {
+		std::cout << "Failed to load hidden texture, using a placeholder." << std::endl;
+		m_hiddenTexture = createHiddenPlaceholderTexture();
+	}
+	else {
+		std::cout << "Hidden texture loaded successfully." << std::endl;
+	}
+
 	std::cout << "Renderer initialized successfully." << std::endl;
 	return true;
 }
@@ -66,6 +78,32 @@ unsigned int Renderer::createPlaceholderTexture() {
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 2, 2, 0, GL_RGBA, GL_UNSIGNED_BYTE, pixels);
 
 	// Linear filtering to blend the 2x2 gradient across the screen
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR); // Linear filtering
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE); // Prevent wrapping(seams)
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+
+	glBindTexture(GL_TEXTURE_2D, 0);
+
+	std::cout << "Placeholder texture created successfully." << std::endl;
+	return texture;
+}
+
+unsigned int Renderer::createHiddenPlaceholderTexture() {
+	unsigned char pixels[] = {
+		138, 43, 226, 255,   // Blue-violet (top-left)
+		255, 0, 255, 255,    // Magenta (top-right)
+		0, 255, 255, 255,    // Cyan (bottom-left)
+		255, 105, 180, 255   // Hot pink (bottom-right)
+	};
+
+	unsigned int texture;
+
+	glGenTextures(1, &texture);
+	glBindTexture(GL_TEXTURE_2D, texture);
+
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 2, 2, 0, GL_RGBA, GL_UNSIGNED_BYTE, pixels);
+
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
@@ -73,7 +111,7 @@ unsigned int Renderer::createPlaceholderTexture() {
 
 	glBindTexture(GL_TEXTURE_2D, 0);
 
-	std::cout << "Placeholder texture created successfully." << std::endl;
+	std::cout << "Hidden placeholder texture created successfully." << std::endl;
 	return texture;
 }
 
@@ -125,19 +163,26 @@ void Renderer::setupProjection() {
 	glUseProgram(0);
 }
 
-void Renderer::render() {
+void Renderer::render(const InputManager& input) {
 	glUseProgram(m_sceneShader);
 
-	// For now, just draw a solid color background, the texture will be added later
-	if (m_backgroundTexture != 0) {
-		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_2D, m_backgroundTexture);
-		glUniform1i(glGetUniformLocation(m_sceneShader, "uTexture"), 0);
-	}
+	/// Bind both textures
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, m_backgroundTexture);
+	glUniform1i(glGetUniformLocation(m_sceneShader, "uTexture"), 0);
 
-	glBindVertexArray(m_quadVAO);
+	glActiveTexture(GL_TEXTURE1);
+	glBindTexture(GL_TEXTURE_2D, m_hiddenTexture);
+	glUniform1i(glGetUniformLocation(m_sceneShader, "uHiddenTexture"), 1);
+
+	// Pass lens uniforms to shader
+	glUniform2f(glGetUniformLocation(m_sceneShader, "uMousePos"), static_cast<float>(input.mouseX), static_cast<float>(input.mouseY));
+	glUniform1f(glGetUniformLocation(m_sceneShader, "uLensRadius"), input.lensRadius);
+	glUniform1f(glGetUniformLocation(m_sceneShader, "uLensRevealProgress"), input.lensRevealProgress);
+	glUniform2f(glGetUniformLocation(m_sceneShader, "uWindowSize"), static_cast<float>(m_windowWidth), static_cast<float>(m_windowHeight));
 
 	// Draw fullscreen quad
+	glBindVertexArray(m_quadVAO);
 	glDrawArrays(GL_TRIANGLES, 0, 6);
 	
 	glBindVertexArray(0);
@@ -162,5 +207,11 @@ void Renderer::cleanup() {
 		glDeleteTextures(1, &m_backgroundTexture);
 		m_backgroundTexture = 0;
 	}
+
+	if (m_hiddenTexture != 0) {
+		glDeleteTextures(1, &m_hiddenTexture);
+		m_hiddenTexture = 0;
+	}
+
 	std::cout << "Renderer resources cleaned up." << std::endl;
 }

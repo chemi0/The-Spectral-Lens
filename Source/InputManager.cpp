@@ -15,7 +15,14 @@ void InputManager::setupCallbacks(GLFWwindow* window) {
 
 void InputManager::mouseButtonCallback(GLFWwindow* window, int button, int action, int mods) {
     if (button == GLFW_MOUSE_BUTTON_LEFT) {
-        getInstance().leftMousePressed = (action == GLFW_PRESS || action == GLFW_REPEAT);
+        if (action == GLFW_PRESS) {
+            getInstance().leftMousePressed = true;
+            std::cout << "LMB pressed" << std::endl; // debug
+        } 
+        else if (action == GLFW_RELEASE) {
+            getInstance().leftMousePressed = false;
+			std::cout << "LMB released" << std::endl; // debug
+        }
     }
 }
 
@@ -39,5 +46,19 @@ void InputManager::cursorPositionCallback(GLFWwindow* window, double xpos, doubl
 void InputManager::keyCallBack(GLFWwindow* window, int key, int scancode, int action, int mods) {
     if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS) {
         glfwSetWindowShouldClose(window, true);
+    }
+}
+
+void InputManager::update(float deltaTime) {
+    // Interpolate lensRevealProgress based on mouse state
+    if (leftMousePressed) {
+		lensRevealProgress += revealSpeed * deltaTime;
+		if (lensRevealProgress > 1.0f) lensRevealProgress = 1.0f;
+
+        std::cout << "LMB Held, Progress: " << lensRevealProgress << std::endl; // debug
+    }
+    else {
+		lensRevealProgress -= revealSpeed * deltaTime;
+		if (lensRevealProgress < 0.0f) lensRevealProgress = 0.0f;
     }
 }

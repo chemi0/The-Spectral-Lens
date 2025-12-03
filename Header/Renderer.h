@@ -2,6 +2,8 @@
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
 
+class InputManager;
+
 class Renderer {
 public:
 	Renderer();
@@ -11,7 +13,7 @@ public:
 	bool initialize(int windowWidth, int windowHeight);
 
 	// Render the scene
-	void render();
+	void render(const InputManager& input);
 
 	// Cleanup resources
 	void cleanup();
@@ -32,6 +34,7 @@ private:
 
 	// Textures
 	unsigned int m_backgroundTexture;
+	unsigned int m_hiddenTexture;
 
 	// Projection matrix location
 	int m_projectionLoc;
@@ -41,4 +44,6 @@ private:
 
 	// Helper function to setup orthographic projection
 	void setupProjection();
+
+	unsigned int createHiddenPlaceholderTexture();
 };
