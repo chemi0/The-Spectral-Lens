@@ -11,6 +11,8 @@ Renderer::Renderer() :
 	m_quadVBO(0),
 	m_backgroundTexture(0),
 	m_hiddenTexture(0),
+	m_snowTexture(0),
+	m_moonTexture(0),
 	m_projectionLoc(-1) {}
 
 Renderer::~Renderer() {
@@ -29,28 +31,51 @@ bool Renderer::initialize(int windowWidth, int windowHeight) {
 		std::cerr << "Failed to create scene shader!" << std::endl;
 		return false;
 	}
-
 	m_projectionLoc = glGetUniformLocation(m_sceneShader, "uProjection");
+
+	// Snow texture
+	m_snowTexture = loadImageToTexture("Resources/snow.png");
+	if (m_snowTexture == 0) {
+		std::cout << "Failed to load snow texture!" << std::endl;
+	}
+	else {
+		std::cout << "Snow texcre loaded successfully." << std::endl;
+	}
+
+	// Allow the wrapping of the snow texture for tiling
+	glBindTexture(GL_TEXTURE_2D, m_snowTexture);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	glBindTexture(GL_TEXTURE_2D, 0);
+
+	// Moon texture
+	m_moonTexture = loadImageToTexture("Resources/Moon2.png");
+	if (m_moonTexture == 0) {
+		std::cout << "Failed to load moon texture!" << std::endl;
+	}
+	else {
+		std::cout << "Moon texture loaded successfully." << std::endl;
+	}
 
 	createQuad();
 
 	setupProjection();
 
 	// Load the background texture (with fallback to placeholder, the ACTUAL texture will be added later, this is just for testing right now)
-	m_backgroundTexture = loadImageToTexture("Resources/forest_normal.png"); 
-
+	m_backgroundTexture = loadImageToTexture("Resources/main_background_v1.png"); 
+	
 	if (m_backgroundTexture == 0) {
 		std::cout << "Failed to load background texture!" << std::endl;
-		m_backgroundTexture = createPlaceholderTexture();
+		m_backgroundTexture = createMainTexture();
 	} else {
 		std::cout << "Background texture loaded successfully." << std::endl;
 	}
 
 	// Load the hidden texture (with fallback to placeholder, the ACTUAL texture will be added later, this is just for testing right now)
-	m_hiddenTexture = loadImageToTexture("Resources/forest_hidden.png");
+	m_hiddenTexture = loadImageToTexture("Resources/hidden_forest.png");
 	if (m_hiddenTexture == 0) {
 		std::cout << "Failed to load hidden texture, using a placeholder." << std::endl;
-		m_hiddenTexture = createHiddenPlaceholderTexture();
+		m_hiddenTexture = createHiddenTexture();
 	}
 	else {
 		std::cout << "Hidden texture loaded successfully." << std::endl;
@@ -60,7 +85,7 @@ bool Renderer::initialize(int windowWidth, int windowHeight) {
 	return true;
 }
 
-unsigned int Renderer::createPlaceholderTexture() {
+unsigned int Renderer::createMainTexture() {
 
 	// 2x2 gradient texture placeholder (from dark forest green to light green)
 	unsigned char pixels[] = {
@@ -89,7 +114,7 @@ unsigned int Renderer::createPlaceholderTexture() {
 	return texture;
 }
 
-unsigned int Renderer::createHiddenPlaceholderTexture() {
+unsigned int Renderer::createHiddenTexture() {
 	unsigned char pixels[] = {
 		138, 43, 226, 255,   // Blue-violet (top-left)
 		255, 0, 255, 255,    // Magenta (top-right)
@@ -175,11 +200,26 @@ void Renderer::render(const InputManager& input) {
 	glBindTexture(GL_TEXTURE_2D, m_hiddenTexture);
 	glUniform1i(glGetUniformLocation(m_sceneShader, "uHiddenTexture"), 1);
 
+	// Bind snow texture
+	glActiveTexture(GL_TEXTURE2);
+	glBindTexture(GL_TEXTURE_2D, m_snowTexture);
+	glUniform1i(glGetUniformLocation(m_sceneShader, "uSnowTexture"), 2);
+
+	// Bind moon texture
+
+	glActiveTexture(GL_TEXTURE3);
+	glBindTexture(GL_TEXTURE_2D, m_moonTexture);
+	glUniform1i(glGetUniformLocation(m_sceneShader, "uMoonTexture"), 3);
+
+
 	// Pass lens uniforms to shader
 	glUniform2f(glGetUniformLocation(m_sceneShader, "uMousePos"), static_cast<float>(input.mouseX), static_cast<float>(input.mouseY));
 	glUniform1f(glGetUniformLocation(m_sceneShader, "uLensRadius"), input.lensRadius);
 	glUniform1f(glGetUniformLocation(m_sceneShader, "uLensRevealProgress"), input.lensRevealProgress);
 	glUniform2f(glGetUniformLocation(m_sceneShader, "uWindowSize"), static_cast<float>(m_windowWidth), static_cast<float>(m_windowHeight));
+
+	// Animation passtime
+	glUniform1f(glGetUniformLocation(m_sceneShader, "uTime"), static_cast<float>(glfwGetTime()));
 
 	// Draw fullscreen quad
 	glBindVertexArray(m_quadVAO);
@@ -187,7 +227,6 @@ void Renderer::render(const InputManager& input) {
 	
 	glBindVertexArray(0);
 	glUseProgram(0);
-
 }
 
 void Renderer::cleanup() {
@@ -195,14 +234,17 @@ void Renderer::cleanup() {
 		glDeleteProgram(m_sceneShader);
 		m_sceneShader = 0;
 	}
+
 	if (m_quadVBO != 0) {
 		glDeleteBuffers(1, &m_quadVBO);
 		m_quadVBO = 0;
 	}
+
 	if (m_quadVAO != 0) {
 		glDeleteVertexArrays(1, &m_quadVAO);
 		m_quadVAO = 0;
 	}
+
 	if (m_backgroundTexture != 0) {
 		glDeleteTextures(1, &m_backgroundTexture);
 		m_backgroundTexture = 0;
@@ -212,6 +254,16 @@ void Renderer::cleanup() {
 		glDeleteTextures(1, &m_hiddenTexture);
 		m_hiddenTexture = 0;
 	}
+
+	if (m_moonTexture != 0) {
+		glDeleteTextures(1, &m_moonTexture);
+		m_moonTexture = 0;
+	}	
+
+	if (m_snowTexture != 0) {
+		glDeleteTextures(1, &m_snowTexture);
+		m_snowTexture = 0;
+	}	
 
 	std::cout << "Renderer resources cleaned up." << std::endl;
 }

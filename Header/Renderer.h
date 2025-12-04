@@ -18,8 +18,6 @@ public:
 	// Cleanup resources
 	void cleanup();
 
-	unsigned int createPlaceholderTexture();
-
 private:
 	// Window dimensions
 	int m_windowWidth;
@@ -35,6 +33,8 @@ private:
 	// Textures
 	unsigned int m_backgroundTexture;
 	unsigned int m_hiddenTexture;
+	unsigned int m_snowTexture;
+	unsigned int m_moonTexture;
 
 	// Projection matrix location
 	int m_projectionLoc;
@@ -45,5 +45,6 @@ private:
 	// Helper function to setup orthographic projection
 	void setupProjection();
 
-	unsigned int createHiddenPlaceholderTexture();
+	unsigned int createMainTexture();
+	unsigned int createHiddenTexture();
 };
