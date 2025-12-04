@@ -47,4 +47,9 @@
     <None Include="Shaders\scene.vert" />
     <None Include="Shaders\scene.frag" />
   </ItemGroup>
+  <ItemGroup>
+    <Image Include="..\..\..\..\Gamedev-Resources\Winter-Forest-Backgrounds\PNG\BG_04\Layers\Moon.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+  </ItemGroup>
 </Project>
