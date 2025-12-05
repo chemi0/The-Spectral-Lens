@@ -47,6 +47,12 @@ void InputManager::keyCallBack(GLFWwindow* window, int key, int scancode, int ac
     if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS) {
         glfwSetWindowShouldClose(window, true);
     }
+    if (key == GLFW_KEY_E && action == GLFW_PRESS) {
+        InputManager::getInstance().findKeyPressed = true;
+    }
+    if (key == GLFW_KEY_E && action == GLFW_RELEASE) {
+        InputManager::getInstance().findKeyPressed = false;
+    }
 }
 
 void InputManager::update(float deltaTime) {

@@ -55,7 +55,7 @@ int main()
 	// FPS cap @ 75FPS
 	const double targetFrameTime = 1.0 / 75.0;
 	double lastFrameTime = glfwGetTime();
-	double deltaTime = 0.0;
+	double deltaTime = 0.0f;
 
 	// Main loop
 	while (!glfwWindowShouldClose(window)) {
@@ -66,8 +66,21 @@ int main()
 		// Update input animation state
 		input.update(static_cast<float>(deltaTime));
 
+		if (input.findKeyPressed && input.lensRevealProgress > 0.5f) {
+			if (renderer.checkEntityClick(
+				static_cast<float>(input.mouseX),
+				static_cast<float>(input.mouseY),
+				input.lensRadius,
+				input.lensRevealProgress)) {
+				std::cout << "Entity clicked and revealed!" << std::endl;
+			}
+			input.findKeyPressed = false; // preventing multiple triggers
+		}
+
 		// Clear screen
 		glClear(GL_COLOR_BUFFER_BIT);
+
+		renderer.update(deltaTime, input);
 
 		// Render the scene
 		renderer.render(input);
