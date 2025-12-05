@@ -5,9 +5,14 @@ layout (location = 1) in vec2 inTexCoord;
 
 out vec2 fragTexCoord;
 
-uniform mat4 uProjection;
+uniform vec2 uEntityPos;
+uniform vec2 uEntitySize;
 
 void main() {
+	vec2 pos = inPos * uEntitySize + uEntityPos;
+
+	pos = pos * 2.0 - 1.0;
+
+	gl_Position = vec4(pos, 0.0, 1.0);
 	fragTexCoord = inTexCoord;
-	gl_Position = uProjection * vec4(inPos, 0.0, 1.0);
 }
