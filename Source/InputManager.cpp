@@ -24,6 +24,17 @@ void InputManager::mouseButtonCallback(GLFWwindow* window, int button, int actio
 			std::cout << "LMB released" << std::endl; // debug
         }
     }
+       
+    if (button == GLFW_MOUSE_BUTTON_RIGHT) {
+        if (action == GLFW_PRESS) {
+            getInstance().rightMousePressed = true;
+            std::cout << "RMB pressed" << std::endl; // debug
+        }
+        else if (action == GLFW_RELEASE) {
+            getInstance().rightMousePressed = false;
+            std::cout << "RMB released" << std::endl; // debug
+        }
+    }
 }
 
 void InputManager::scrollCallback(GLFWwindow* window, double xoffset, double yoffset) {
@@ -53,15 +64,29 @@ void InputManager::keyCallBack(GLFWwindow* window, int key, int scancode, int ac
     if (key == GLFW_KEY_E && action == GLFW_RELEASE) {
         InputManager::getInstance().findKeyPressed = false;
     }
+
+    if (key == GLFW_KEY_R && action == GLFW_PRESS) {
+        InputManager::getInstance().resetKeyPressed = true;
+    }
+
+    if (key == GLFW_KEY_R && action == GLFW_RELEASE) {
+        InputManager::getInstance().resetKeyPressed = false;
+    }
 }
 
 void InputManager::update(float deltaTime) {
     // Interpolate lensRevealProgress based on mouse state
-    if (leftMousePressed) {
+    if (leftMousePressed || rightMousePressed) {
 		lensRevealProgress += revealSpeed * deltaTime;
 		if (lensRevealProgress > 1.0f) lensRevealProgress = 1.0f;
 
-        std::cout << "LMB Held, Progress: " << lensRevealProgress << std::endl; // debug
+        if (leftMousePressed) {
+            std::cout << "LMB Held, Progress: " << lensRevealProgress << std::endl; // debug
+        }
+        else if (rightMousePressed) {
+            std::cout << "RMB Held, Progress: " << lensRevealProgress << std::endl; // debug    
+        }
+
     }
     else {
 		lensRevealProgress -= revealSpeed * deltaTime;

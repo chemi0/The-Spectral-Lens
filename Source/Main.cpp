@@ -37,6 +37,16 @@ int main()
 	std::cout << "OpenGL Version: " << glGetString(GL_VERSION) << std::endl;
 	std::cout << "Resolution: " << mode->width << "x" << mode->height << std::endl;
 
+	// Custom cursor setup
+	GLFWcursor* customCursor = loadImageToCursor("Resources/cursor_lens1.png");
+	if (customCursor != nullptr) {
+		glfwSetCursor(window, customCursor);
+		std::cout << "Custom cursor loaded successfully." << std::endl;
+	} 
+	else {
+		std::cout << "Failed to load custom cursor." << std::endl;
+	}
+
 	// Input handling
 	InputManager& input = InputManager::getInstance();
 	input.setupCallbacks(window);
@@ -75,6 +85,10 @@ int main()
 				std::cout << "Entity clicked and revealed!" << std::endl;
 			}
 			input.findKeyPressed = false; // preventing multiple triggers
+		}
+
+		if (input.resetKeyPressed) {
+			renderer.resetEntities();
 		}
 
 		// Clear screen

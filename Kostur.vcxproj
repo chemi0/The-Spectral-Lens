@@ -137,6 +137,7 @@
     <ClInclude Include="Header\InputManager.h" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="glsl Shaders\scene.frag" />
     <None Include="packages.config" />
     <None Include="Shaders\scene.frag" />
     <None Include="Shaders\scene.vert" />

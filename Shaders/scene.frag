@@ -8,11 +8,13 @@ uniform sampler2D uTexture; // Normal world
 uniform sampler2D uHiddenTexture; // Hidden world
 uniform sampler2D uSnowTexture; // Snow texture for falling snow effect
 uniform sampler2D uMoonTexture;
+uniform sampler2D uFontTexture;
 
 // Lens properties
 uniform vec2 uMousePos;
 uniform float uLensRadius; // radius (can be adjustable via MWHLUP/MWHLDWN)
 uniform float uLensRevealProgress; // 0.0 -> 1.0 animation progress
+uniform float uHiddenText; // 1.0 -> show, 0.0 -> hide
 uniform vec2 uWindowSize; // screen resolution for coordinare conversion
 
 uniform float uTime; // Elapsed time for the snow falling animation
@@ -92,7 +94,86 @@ void main() {
 					}
 			}
 		}
-	}
+			
+		// Hidden Text
+		if (uHiddenText > 0.5 && mask > 0.0) {
+	
+			vec2 sigPos = vec2(0.02, 0.88); // Top-left corner
+			float charScale = 0.015;
+			float spacing = charScale * 1.2;
+
+			int text[26];
+			// MILAN SPASOJEVIC RA147/2022
+			text[0] = 23;  // M
+			text[1] = 19;  // I
+			text[2] = 22;  // L
+			text[3] = 11;  // A
+			text[4] = 24;  // N
+			text[5] = 38;  // (space)
+			text[6] = 29;  // S
+			text[7] = 26;  // P
+			text[8] = 11;  // A
+			text[9] = 29;  // S
+			text[10] = 25; // O
+			text[11] = 20; // J
+			text[12] = 15; // E
+			text[13] = 32; // V
+			text[14] = 19; // I
+			text[15] = 13; // C
+			text[16] = 28; // R
+			text[17] = 11; // A
+			text[18] = 1;  // 1
+			text[19] = 4;  // 4
+			text[20] = 7;  // 7
+			text[21] = 10; // /
+			text[22] = 2;  // 2
+			text[23] = 0;  // 0
+			text[24] = 2;  // 2
+			text[25] = 2;  // 2
+
+			float totalTextWidth = 26.0 * spacing;
+			float textHeight = charScale * 1.5;
+	
+			// Check if current fragment is within signature bounds
+			if (fragTexCoord.x >= sigPos.x && fragTexCoord.x <= sigPos.x + totalTextWidth &&
+				fragTexCoord.y >= sigPos.y && fragTexCoord.y <= sigPos.y + textHeight) {
+		
+				// Calculate which character wer on
+				float relX = fragTexCoord.x - sigPos.x;
+				int charIndex = int(relX / spacing);
+
+				if (charIndex >= 0 && charIndex < 26) {
+					float charStartX = float(charIndex) * spacing;
+					float localX = (relX - charStartX) / charScale;
+					float localY = 1.0 - (fragTexCoord.y - sigPos.y) / textHeight;
+
+					// Local UV within the character quad
+					if (localX >= 0.0 && localX <= 1.0 && localY >= 0.0 && localY <= 1.0) {
+						int atlasIndex = text[charIndex];
+						float charWidth = 1.0 / 39.0;
+						float atlasU = (float(atlasIndex) + localX) * charWidth;
+						float atlasV = localY;
+
+						float charValue = texture(uFontTexture, vec2(atlasU, atlasV)).r;
+
+						if (charValue > 0.1) {
+							// Glow effect
+							vec3 baseColor = vec3(0.4, 0.8, 1.0);
+							vec3 glowColor = vec3(0.7, 0.95, 1.0);
+
+							float pulse = 0.7 + 0.3 * sin(uTime * 2.0); // pulsating effect
+
+							float glow = smoothstep(0.1, 0.5, charValue); // soft glow around the text
+							vec3 textColor = mix(glowColor, baseColor, glow);
+
+							float alpha = charValue * pulse * mask * 0.9;
+							finalColor.rgb = mix(finalColor.rgb, textColor, alpha);
+						}
+					}
+				}
+			}
+		}
 
 	FragColor = finalColor;
+	}
 }
