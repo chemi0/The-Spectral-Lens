@@ -26,6 +26,9 @@ public:
 
 	bool checkEntityClick(float mouseX, float mouseY, float lensRadius, float revealProgress);
 
+	// Reset 
+	void resetEntities();
+
 	// Discovery counts
 	int getFoundCount() const;
 	int getTotalCount() const;
@@ -39,6 +42,7 @@ private:
 	unsigned int m_sceneShader;
 	unsigned int m_entityShader;
 	unsigned int m_hudShader;
+	unsigned int m_bushShader;
 
 	// Fullscreen quad VAO/VBO
 	unsigned int m_quadVAO;
@@ -58,6 +62,7 @@ private:
 	unsigned int m_snowTexture;
 	unsigned int m_moonTexture;
 	unsigned int m_fontTexture;
+	unsigned int m_bushTexture;
 
 	std::vector<Entity> m_entities;
 
@@ -72,12 +77,15 @@ private:
 	void setupProjection();
 
 	void initializeEntities();
+
 	void renderEntities(const InputManager& input);
 	void updateEntities(float deltaTime);
 	void renderHUD();
 	void renderText(const std::string& text, float x, float y, float scale);
+	void renderBushForeground();
 
 	unsigned int createMainTexture();
 	unsigned int createHiddenTexture();
 	unsigned int createFontTexture();
+
 };

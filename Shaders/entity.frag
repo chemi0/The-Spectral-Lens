@@ -11,9 +11,16 @@ uniform vec2 uWindowSize;
 uniform vec2 uEntityPos;
 uniform vec2 uEntitySize;
 uniform float uIsFound; // 0.0 = not found, 1.0 = found
+uniform float uFlipHorizontal; // 0.0 = normal, 1.0 = flipped
 
 void main() {
-	vec4 texColor = texture(uEntityTexture, fragTexCoord);
+
+	vec2 texCoord = fragTexCoord;
+	if (uFlipHorizontal > 0.5) {
+		texCoord.x = 1.0 - texCoord.x;
+	}
+
+	vec4 texColor = texture(uEntityTexture, texCoord);
 
 	if (texColor.a < 0.01) {
 		discard; // Fully discard transparent pixels

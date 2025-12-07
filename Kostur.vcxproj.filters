@@ -49,6 +49,7 @@
     <None Include="packages.config" />
     <None Include="Shaders\scene.vert" />
     <None Include="Shaders\scene.frag" />
+    <None Include="glsl Shaders\scene.frag" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="..\..\..\..\Gamedev-Resources\Winter-Forest-Backgrounds\PNG\BG_04\Layers\Moon.png">

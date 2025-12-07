@@ -9,6 +9,7 @@ Renderer::Renderer() :
 	m_sceneShader(0),
 	m_entityShader(0),
 	m_hudShader(0),
+	m_bushShader(0),
 	m_quadVAO(0),
 	m_quadVBO(0),
 	m_entityVAO(0),
@@ -20,6 +21,7 @@ Renderer::Renderer() :
 	m_snowTexture(0),
 	m_moonTexture(0),
 	m_fontTexture(0),
+	m_bushTexture(0),
 	m_projectionLoc(-1) {}
 
 Renderer::~Renderer() {
@@ -51,6 +53,12 @@ bool Renderer::initialize(int windowWidth, int windowHeight) {
 	m_hudShader = createShader("Shaders/hud.vert", "Shaders/hud.frag");
 	if (m_hudShader == 0) {
 		std::cerr << "Failed to create HUD shader!" << std::endl;
+		return false;
+	}
+
+	m_bushShader = createShader("Shaders/bush.vert", "Shaders/bush.frag");
+	if (m_bushShader == 0) {
+		std::cerr << "Failed to create bush shader!" << std::endl;
 		return false;
 	}
 
@@ -112,15 +120,22 @@ bool Renderer::initialize(int windowWidth, int windowHeight) {
 		std::cout << "Hidden texture loaded successfully." << std::endl;
 	}
 
+	m_bushTexture = loadImageToTexture("Resources/bush_foreground.png");
+	if (m_bushTexture == 0) {
+		std::cout << "Failed to load bush foreground texture!" << std::endl;
+	}
+	else {
+		std::cout << "Bush foreground texture loaded successfully." << std::endl;
+	}
+
 	initializeEntities();
 
 	std::cout << "Renderer initialized successfully." << std::endl;
 	return true;
 }
 
-
-
 void Renderer::initializeEntities() {
+	// Flying witch cat
 	Entity witchCat;
 	witchCat.posX = 1.0f;
 	witchCat.posY = 0.6f;
@@ -130,6 +145,9 @@ void Renderer::initializeEntities() {
 	witchCat.texture = loadImageToTexture("Resources/witch_cat.png");
 	witchCat.movement = MovementType::HorizontalLoop;
 	witchCat.found = false;
+	witchCat.initialPosX = witchCat.posX;
+	witchCat.initialPosY = witchCat.posY;
+	witchCat.facingRight = false;
 
 	if (witchCat.texture != 0) {
 		m_entities.push_back(witchCat);
@@ -139,7 +157,72 @@ void Renderer::initializeEntities() {
 		std::cout << "Failed to load witch cat texture!" << std::endl;
 	}
 
-	// I think 4 more entities will suffice for the demo, add here
+	// Bouncing cat
+	Entity bouncingCat;
+	bouncingCat.posX = 0.75f;
+	bouncingCat.posY = 0.15f;
+	bouncingCat.initialPosX = bouncingCat.posX;
+	bouncingCat.initialPosY = bouncingCat.posX;
+	bouncingCat.width = 0.15f;
+	bouncingCat.height = 0.12f;
+	bouncingCat.speed = 0.8f;
+	bouncingCat.texture = loadImageToTexture("Resources/witch_cat.png");
+	bouncingCat.movement = MovementType::Bounce;
+	bouncingCat.found = false;
+	bouncingCat.facingRight = true;
+
+	if (bouncingCat.texture != 0) {
+		m_entities.push_back(bouncingCat);
+		std::cout << "Bouncing cat entity initialized successfully." << std::endl;
+	}
+	else {
+		std::cout << "Failed to load bouncing cat texture!" << std::endl;
+	}
+	
+	// Orbiting cat
+	Entity orbitingCat;
+	orbitingCat.posX = 0.85f;
+	orbitingCat.posY = 0.11f;
+	orbitingCat.initialPosX = orbitingCat.posX;
+	orbitingCat.initialPosY = orbitingCat.posY;
+	orbitingCat.width = 0.15f;
+	orbitingCat.height = 0.12f;
+	orbitingCat.speed = -0.5f;
+	orbitingCat.texture = loadImageToTexture("Resources/witch_cat.png");
+	orbitingCat.movement = MovementType::ReverseParabolicCurve;
+	orbitingCat.found = false;
+	orbitingCat.facingRight = false;
+
+
+	if (orbitingCat.texture != 0) {
+		m_entities.push_back(orbitingCat);
+		std::cout << "Orbiting cat entity initialized successfully." << std::endl;
+	}
+	else {
+		std::cout << "Failed to load orbiting cat texture!" << std::endl;
+	}
+	// Static cat (hiding behind the bush)
+	Entity staticCat;
+	staticCat.posX = 0.2f;
+	staticCat.posY = 0.25f;
+	staticCat.initialPosX = staticCat.posX;
+	staticCat.initialPosY = staticCat.posY;
+	staticCat.width = 0.15f;
+	staticCat.height = 0.12f;
+	staticCat.speed = 0.0f;
+	staticCat.texture = loadImageToTexture("Resources/witch_cat.png");
+	staticCat.movement = MovementType::Static;
+	staticCat.found = false;
+	staticCat.facingRight = true;
+
+	if (staticCat.texture != 0) {
+		m_entities.push_back(staticCat);
+		std::cout << "Static cat entity initialized successfully." << std::endl;
+	}
+	else {
+		std::cout << "Failed to load static cat texture!" << std::endl;
+	}
+
 }
 
 void Renderer::update(float deltaTime, const InputManager& input) {
@@ -165,8 +248,52 @@ void Renderer::updateEntities(float deltaTime) {
 
 			break;
 		}
-		case MovementType::Bounce:
+		case MovementType::Bounce: {
+			float jumpHeight = 0.1f;
+			float jumpSpeed = entity.speed * 7.0f;
+
+			entity.posY = entity.initialPosY + static_cast<float>(abs(sin(glfwGetTime() * jumpSpeed)) * jumpHeight);
+
 			break;
+		}
+		case MovementType::ReverseParabolicCurve: {
+			// Reverse parabolic (arc) movement [rainbow shape basically]
+			float horizontalSpeed = entity.speed;
+			float arcHeight = 0.35f;
+			float arcWidth = 0.63f;
+
+			entity.posX += horizontalSpeed * deltaTime;
+
+			// Progress along the arc (0.0 to 1.0), goes back the same way facing the opposite direction
+			float progress = abs(entity.posX - entity.initialPosX) / arcWidth;
+
+			if (progress > 1.0f) {
+				progress = 1.0f;
+			}
+
+			// y = height * (1 - 4 * (progress - 0.5)^2)
+
+			entity.posY = entity.initialPosY + arcHeight * (1.0f - 4.0f * (progress - 0.5f) * (progress - 0.5f));
+
+			entity.facingRight = (entity.speed > 0.0f);
+
+			// Boundary check
+			float leftBoundary = entity.initialPosX - arcWidth; // Bush position
+			float rightBoundary = entity.initialPosX; // Starting position
+
+			if (entity.speed < 0.0f && entity.posX <= leftBoundary) {
+				entity.posX = leftBoundary;
+				entity.speed = -entity.speed;
+				entity.facingRight = true;
+			}
+			else if (entity.speed > 0.0f && entity.posX >= rightBoundary) {
+				entity.posX = rightBoundary;
+				entity.speed = -entity.speed;
+				entity.facingRight = false;
+			}
+
+			break;
+		}
 
 		case MovementType::Static:
 		default:
@@ -330,11 +457,17 @@ void Renderer::render(const InputManager& input) {
 	glBindTexture(GL_TEXTURE_2D, m_moonTexture);
 	glUniform1i(glGetUniformLocation(m_sceneShader, "uMoonTexture"), 3);
 
+	// Font texture for the hidden text
+
+	glActiveTexture(GL_TEXTURE4);
+	glBindTexture(GL_TEXTURE_2D, m_fontTexture);
+	glUniform1i(glGetUniformLocation(m_sceneShader, "uFontTexture"), 4);
 
 	// Pass lens uniforms to shader
 	glUniform2f(glGetUniformLocation(m_sceneShader, "uMousePos"), static_cast<float>(input.mouseX), static_cast<float>(input.mouseY));
 	glUniform1f(glGetUniformLocation(m_sceneShader, "uLensRadius"), input.lensRadius);
 	glUniform1f(glGetUniformLocation(m_sceneShader, "uLensRevealProgress"), input.lensRevealProgress);
+	glUniform1f(glGetUniformLocation(m_sceneShader, "uHiddenText"), input.rightMousePressed ? 1.0f : 0.0f);
 	glUniform2f(glGetUniformLocation(m_sceneShader, "uWindowSize"), static_cast<float>(m_windowWidth), static_cast<float>(m_windowHeight));
 
 	// Animation passtime
@@ -350,8 +483,8 @@ void Renderer::render(const InputManager& input) {
 
 	// Render entities on top
 	renderEntities(input);
-
 	renderHUD();
+	renderBushForeground();
 }
 
 void Renderer::renderEntities(const InputManager& input) {
@@ -380,6 +513,8 @@ void Renderer::renderEntities(const InputManager& input) {
 		glUniform2f(glGetUniformLocation(m_entityShader, "uEntitySize"), entity.width, entity.height);
 
 		glUniform1f(glGetUniformLocation(m_entityShader, "uIsFound"), entity.found ? 1.0f : 0.0f);
+
+		glUniform1f(glGetUniformLocation(m_entityShader, "uFlipHorizontal"), entity.facingRight ? 1.0f : 0.0f);
 
 		glDrawArrays(GL_TRIANGLES, 0, 6);
 	}
@@ -421,6 +556,21 @@ bool Renderer::checkEntityClick(float mouseX, float mouseY, float lensRadius, fl
 	}
 	return false;
 }
+
+void Renderer::resetEntities() {
+	for (auto& entity : m_entities) {
+		entity.found = false;
+		entity.posX = entity.initialPosX;
+		entity.posY = entity.initialPosY;
+
+		// Speed direction for the arc movement
+		if (entity.movement == MovementType::ReverseParabolicCurve) {
+			entity.facingRight = false;
+			entity.speed = -abs(entity.speed);
+		}	
+	}
+}
+
 
 void Renderer::createHUDQuad() {
 	float hudVertices[] = {
@@ -483,37 +633,37 @@ unsigned int Renderer::createFontTexture() {
 
 		// A-Z
 		{0x18, 0x3C, 0x66, 0x66, 0x7E, 0x66, 0x66, 0x00}, // A (index 11)
-		{0x7C, 0x66, 0x66, 0x7C, 0x66, 0x66, 0x7C, 0x00}, // B
-		{0x3C, 0x66, 0x60, 0x60, 0x60, 0x66, 0x3C, 0x00}, // C
-		{0x78, 0x6C, 0x66, 0x66, 0x66, 0x6C, 0x78, 0x00}, // D
-		{0x7E, 0x60, 0x60, 0x7C, 0x60, 0x60, 0x7E, 0x00}, // E
-		{0x7E, 0x60, 0x60, 0x7C, 0x60, 0x60, 0x60, 0x00}, // F
-		{0x3C, 0x66, 0x60, 0x6E, 0x66, 0x66, 0x3C, 0x00}, // G
-		{0x66, 0x66, 0x66, 0x7E, 0x66, 0x66, 0x66, 0x00}, // H
-		{0x7E, 0x18, 0x18, 0x18, 0x18, 0x18, 0x7E, 0x00}, // I
-		{0x3E, 0x0C, 0x0C, 0x0C, 0x0C, 0x6C, 0x38, 0x00}, // J
-		{0x66, 0x6C, 0x78, 0x70, 0x78, 0x6C, 0x66, 0x00}, // K
-		{0x60, 0x60, 0x60, 0x60, 0x60, 0x60, 0x7E, 0x00}, // L
-		{0x63, 0x77, 0x7F, 0x6B, 0x63, 0x63, 0x63, 0x00}, // M
-		{0x66, 0x76, 0x7E, 0x7E, 0x6E, 0x66, 0x66, 0x00}, // N
-		{0x3C, 0x66, 0x66, 0x66, 0x66, 0x66, 0x3C, 0x00}, // O
-		{0x7C, 0x66, 0x66, 0x7C, 0x60, 0x60, 0x60, 0x00}, // P
-		{0x3C, 0x66, 0x66, 0x66, 0x6A, 0x6C, 0x36, 0x00}, // Q
-		{0x7C, 0x66, 0x66, 0x7C, 0x6C, 0x66, 0x66, 0x00}, // R
-		{0x3C, 0x66, 0x60, 0x3C, 0x06, 0x66, 0x3C, 0x00}, // S
-		{0x7E, 0x18, 0x18, 0x18, 0x18, 0x18, 0x18, 0x00}, // T
-		{0x66, 0x66, 0x66, 0x66, 0x66, 0x66, 0x3C, 0x00}, // U
-		{0x66, 0x66, 0x66, 0x66, 0x66, 0x3C, 0x18, 0x00}, // V
-		{0x63, 0x63, 0x63, 0x6B, 0x7F, 0x77, 0x63, 0x00}, // W
-		{0x66, 0x66, 0x3C, 0x18, 0x3C, 0x66, 0x66, 0x00}, // X
-		{0x66, 0x66, 0x66, 0x3C, 0x18, 0x18, 0x18, 0x00}, // Y
-		{0x7E, 0x06, 0x0C, 0x18, 0x30, 0x60, 0x7E, 0x00}, // Z (index 36)
+		{0x7C, 0x66, 0x66, 0x7C, 0x66, 0x66, 0x7C, 0x00}, // B 12
+		{0x3C, 0x66, 0x60, 0x60, 0x60, 0x66, 0x3C, 0x00}, // C 13
+		{0x78, 0x6C, 0x66, 0x66, 0x66, 0x6C, 0x78, 0x00}, // D 14
+		{0x7E, 0x60, 0x60, 0x7C, 0x60, 0x60, 0x7E, 0x00}, // E 15 
+		{0x7E, 0x60, 0x60, 0x7C, 0x60, 0x60, 0x60, 0x00}, // F 16
+		{0x3C, 0x66, 0x60, 0x6E, 0x66, 0x66, 0x3C, 0x00}, // G 17
+		{0x66, 0x66, 0x66, 0x7E, 0x66, 0x66, 0x66, 0x00}, // H 18
+		{0x7E, 0x18, 0x18, 0x18, 0x18, 0x18, 0x7E, 0x00}, // I 19
+		{0x3E, 0x0C, 0x0C, 0x0C, 0x0C, 0x6C, 0x38, 0x00}, // J 20
+		{0x66, 0x6C, 0x78, 0x70, 0x78, 0x6C, 0x66, 0x00}, // K 21
+		{0x60, 0x60, 0x60, 0x60, 0x60, 0x60, 0x7E, 0x00}, // L 22 
+		{0x63, 0x77, 0x7F, 0x6B, 0x63, 0x63, 0x63, 0x00}, // M 23
+		{0x66, 0x76, 0x7E, 0x7E, 0x6E, 0x66, 0x66, 0x00}, // N 24 
+		{0x3C, 0x66, 0x66, 0x66, 0x66, 0x66, 0x3C, 0x00}, // O 25 
+		{0x7C, 0x66, 0x66, 0x7C, 0x60, 0x60, 0x60, 0x00}, // P 26
+		{0x3C, 0x66, 0x66, 0x66, 0x6A, 0x6C, 0x36, 0x00}, // Q 27
+		{0x7C, 0x66, 0x66, 0x7C, 0x6C, 0x66, 0x66, 0x00}, // R 28
+		{0x3C, 0x66, 0x60, 0x3C, 0x06, 0x66, 0x3C, 0x00}, // S 29
+		{0x7E, 0x18, 0x18, 0x18, 0x18, 0x18, 0x18, 0x00}, // T 30
+		{0x66, 0x66, 0x66, 0x66, 0x66, 0x66, 0x3C, 0x00}, // U 31
+		{0x66, 0x66, 0x66, 0x66, 0x66, 0x3C, 0x18, 0x00}, // V 32
+		{0x63, 0x63, 0x63, 0x6B, 0x7F, 0x77, 0x63, 0x00}, // W 33
+		{0x66, 0x66, 0x3C, 0x18, 0x3C, 0x66, 0x66, 0x00}, // X 33 
+		{0x66, 0x66, 0x66, 0x3C, 0x18, 0x18, 0x18, 0x00}, // Y 34
+		{0x7E, 0x06, 0x0C, 0x18, 0x30, 0x60, 0x7E, 0x00}, // Z (index 35)
 
 		// : (colon)
-		{0x00, 0x18, 0x18, 0x00, 0x18, 0x18, 0x00, 0x00}, // : (index 37)
+		{0x00, 0x18, 0x18, 0x00, 0x18, 0x18, 0x00, 0x00}, // : (index 36)
 
 		// space (blank)
-		{0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00}  // space (index 38)
+		{0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00}  // space (index 37)
 
 	};
 
@@ -659,15 +809,40 @@ void Renderer::renderHUD() {
 
 	renderText(counterText, xPos, yPos, charScale);
 
-	glUniform4f(glGetUniformLocation(m_hudShader, "uTextColor"), 1.0f, 1.0f, 1.0f, 1.0f);
+	//glUniform4f(glGetUniformLocation(m_hudShader, "uTextColor"), 1.0f, 1.0f, 1.0f, 1.0f);
 
-	std::string watermark = "Milan Spasojevic RA147/2022";
-	float wmScale = 0.03f;
-	float wmX = -0.98f;
-	float wmY = -0.95f;
+	//if (InputManager::getInstance().rightMousePressed) {
+	//	std::string watermark = "Milan Spasojevic RA147/2022";
+	//	float wmScale = 0.03f;
+	//	float wmX = -0.98f;
+	//	float wmY = 0.85f;
 
-	renderText(watermark, wmX, wmY, wmScale);
+	//	renderText(watermark, wmX, wmY, wmScale);
+	//}
 
+	glDisable(GL_BLEND);
+	glUseProgram(0);
+}
+
+void Renderer::renderBushForeground() {
+	glUseProgram(m_bushShader);
+	
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, m_bushTexture);
+	glUniform1i(glGetUniformLocation(m_bushShader, "uTexture"), 0.0f);
+
+	glUniform2f(glGetUniformLocation(m_bushShader, "uMousePos"), static_cast<float>(InputManager::getInstance().mouseX), static_cast<float>(InputManager::getInstance().mouseY));
+	glUniform1f(glGetUniformLocation(m_bushShader, "uLensRadius"), InputManager::getInstance().lensRadius);
+	glUniform1f(glGetUniformLocation(m_bushShader, "uLensRevealProgress"), InputManager::getInstance().lensRevealProgress);
+	glUniform2f(glGetUniformLocation(m_bushShader, "uWindowSize"), static_cast<float>(m_windowWidth), static_cast<float>(m_windowHeight));
+
+	glBindVertexArray(m_quadVAO);	
+	glDrawArrays(GL_TRIANGLES, 0, 6);
+
+	glBindVertexArray(0);
 	glDisable(GL_BLEND);
 	glUseProgram(0);
 }
@@ -687,6 +862,11 @@ void Renderer::cleanup() {
 	if (m_hudShader != 0) {
 		glDeleteProgram(m_hudShader);
 		m_hudShader = 0;
+	}
+
+	if (m_bushShader != 0) {
+		glDeleteProgram(m_bushShader);
+		m_bushShader = 0;
 	}
 
 	if (m_quadVBO != 0) {
@@ -742,6 +922,11 @@ void Renderer::cleanup() {
 	if (m_fontTexture != 0) {
 		glDeleteTextures(1, &m_fontTexture);
 		m_fontTexture = 0;
+	}
+
+	if (m_bushTexture != 0) {
+		glDeleteTextures(1, &m_bushTexture);
+		m_bushTexture = 0;
 	}
 
 	for (auto& entity : m_entities) {

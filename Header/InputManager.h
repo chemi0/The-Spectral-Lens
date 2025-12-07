@@ -6,7 +6,9 @@ public:
 	double mouseX = 0.0;
 	double mouseY = 0.0;
 	bool leftMousePressed = false;
+	bool rightMousePressed = false;
 	bool findKeyPressed = false; // 'E' key for finding entities
+	bool resetKeyPressed = false; // 'R' key to reset 
 
 	// Lens properties, starting value, min/max limits
 	float lensRadius = 150.0f;
