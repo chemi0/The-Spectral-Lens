@@ -102,7 +102,7 @@ void main() {
 			float charScale = 0.015;
 			float spacing = charScale * 1.2;
 
-			int text[26];
+			int text[27];
 			// MILAN SPASOJEVIC RA147/2022
 			text[0] = 23;  // M
 			text[1] = 19;  // I
@@ -120,18 +120,19 @@ void main() {
 			text[13] = 32; // V
 			text[14] = 19; // I
 			text[15] = 13; // C
-			text[16] = 28; // R
-			text[17] = 11; // A
-			text[18] = 1;  // 1
-			text[19] = 4;  // 4
-			text[20] = 7;  // 7
-			text[21] = 10; // /
-			text[22] = 2;  // 2
-			text[23] = 0;  // 0
-			text[24] = 2;  // 2
+			text[16] = 38;; // (space)
+			text[17] = 28; // R
+			text[18] = 11; // A
+			text[19] = 1;  // 1
+			text[20] = 4;  // 4
+			text[21] = 7;  // 7
+			text[22] = 10; // /
+			text[23] = 2;  // 2
+			text[24] = 0;  // 0
 			text[25] = 2;  // 2
+			text[26] = 2;  // 2
 
-			float totalTextWidth = 26.0 * spacing;
+			float totalTextWidth = 27.0 * spacing;
 			float textHeight = charScale * 1.5;
 	
 			// Check if current fragment is within signature bounds
@@ -142,7 +143,7 @@ void main() {
 				float relX = fragTexCoord.x - sigPos.x;
 				int charIndex = int(relX / spacing);
 
-				if (charIndex >= 0 && charIndex < 26) {
+				if (charIndex >= 0 && charIndex < 27) {
 					float charStartX = float(charIndex) * spacing;
 					float localX = (relX - charStartX) / charScale;
 					float localY = 1.0 - (fragTexCoord.y - sigPos.y) / textHeight;
@@ -173,7 +174,6 @@ void main() {
 				}
 			}
 		}
-
-	FragColor = finalColor;
 	}
+	FragColor = finalColor;
 }
