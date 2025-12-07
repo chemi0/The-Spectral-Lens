@@ -9,12 +9,9 @@ https://opengameart.org
 https://craftpix.net
 
 ## Dependencies
-Place GLFW and GLEW locally (outside version control):
+Project uses the following libraries:
 - `packages/glfw.3.4.0/...`
 - `packages/glew-2.2.0.2.2.0.1/...`
 
-Ensure the project Include/Lib paths point to these directories, or install via vcpkg:
-- `vcpkg install glfw3 glew`
-
-Large vendor binaries in `packages/` are intentionally excluded to keep the repo small.
+The `packages/` folder is intentionally excluded from version control (listed in `.gitignore`).
 
