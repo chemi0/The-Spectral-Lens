@@ -128,14 +128,17 @@
     <ClCompile Include="Source\InputManager.cpp" />
     <ClCompile Include="Source\Main.cpp" />
     <ClCompile Include="Source\Renderer.cpp" />
+    <ClCompile Include="Source\TestMinigame.cpp" />
     <ClCompile Include="Source\Util.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Entity.h" />
+    <ClInclude Include="Header\Camera.h" />
     <ClInclude Include="Header\GameStateManager.h" />
     <ClInclude Include="Header\Minigame.h" />
     <ClInclude Include="Header\Renderer.h" />
     <ClInclude Include="Header\stb_image.h" />
+    <ClInclude Include="Header\TestMinigame.h" />
     <ClInclude Include="Header\Util.h" />
     <ClInclude Include="Header\InputManager.h" />
   </ItemGroup>

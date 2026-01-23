@@ -4,5 +4,7 @@
 #include <string>
 int endProgram(std::string message);
 unsigned int createShader(const char* vsSource, const char* fsSource);
+unsigned int compileShader(GLenum type, const char* source);
 unsigned loadImageToTexture(const char* filePath);
 GLFWcursor* loadImageToCursor(const char* filePath);
+
