@@ -1,10 +1,14 @@
 ﻿#include <GL/glew.h>
 #include <GLFW/glfw3.h>
 #include <iostream>
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
 
 #include "../Header/Util.h"
 #include "../Header/InputManager.h"
 #include "../Header/Renderer.h"
+#include "../Header/GameStateManager.h"
 
 // Main fajl funkcija sa osnovnim komponentama OpenGL programa
 
@@ -57,9 +61,14 @@ int main()
 		return endProgram("Renderer couldn't initialize.");
 	}
 
+	// Game State Manager setup
+	GameStateManager& gameManager = GameStateManager::getInstance();
+	gameManager.setRenderer(&renderer);
+
 	// OpenGL state
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
 	glClearColor(0.1f, 0.15f, 0.12f, 1.0f);
 
 	// FPS cap @ 75FPS
@@ -72,35 +81,53 @@ int main()
 		double frameStartTime = glfwGetTime();
 		deltaTime = frameStartTime - lastFrameTime;
 		lastFrameTime = frameStartTime;
-		
+
 		// Update input animation state
 		input.update(static_cast<float>(deltaTime));
 
-		if (input.findKeyPressed && input.lensRevealProgress > 0.5f) {
-			if (renderer.checkEntityClick(
-				static_cast<float>(input.mouseX),
-				static_cast<float>(input.mouseY),
-				input.lensRadius,
-				input.lensRevealProgress)) {
-				std::cout << "Entity clicked and revealed!" << std::endl;
+		// 2D/3D Logic split
+		if (gameManager.getState() == GameState::LENS_2D) {
+
+			if (input.findKeyPressed && input.lensRevealProgress > 0.5f) {
+				Entity* clickedEntity = renderer.checkEntityClick(
+					static_cast<float>(input.mouseX),
+					static_cast<float>(input.mouseY),
+					input.lensRadius,
+					input.lensRevealProgress);
+
+				if (clickedEntity != nullptr) {
+					gameManager.startMinigame(clickedEntity->movement, clickedEntity);
+				}
+				input.findKeyPressed = false; // preventing multiple triggers
 			}
-			input.findKeyPressed = false; // preventing multiple triggers
+			if (input.resetKeyPressed) {
+				renderer.resetEntities();
+			}
+
+			// Update 2D Animations
+			renderer.update(static_cast<float>(deltaTime), input);
+		} else {
+			// 3D-specific input handling will be here later
 		}
 
-		if (input.resetKeyPressed) {
-			renderer.resetEntities();
-		}
+		gameManager.update(static_cast<float>(deltaTime));
 
-		// Clear screen
-		glClear(GL_COLOR_BUFFER_BIT);
-
-		renderer.update(deltaTime, input);
-
-		// Render the scene
-		renderer.render(input);
+		gameManager.render(input);
 
 		glfwSwapBuffers(window);
 		glfwPollEvents();
+
+
+		//// Clear screen
+		//glClear(GL_COLOR_BUFFER_BIT);
+
+		//renderer.update(deltaTime, input);
+
+		//// Render the scene
+		//renderer.render(input);
+
+		//glfwSwapBuffers(window);
+		//glfwPollEvents();
 
 		// FPS cap
 		double frameEndTime = glfwGetTime();

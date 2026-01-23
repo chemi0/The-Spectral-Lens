@@ -24,7 +24,7 @@ public:
 	// Cleanup resources
 	void cleanup();
 
-	bool checkEntityClick(float mouseX, float mouseY, float lensRadius, float revealProgress);
+	Entity* checkEntityClick(float mouseX, float mouseY, float lensRadius, float revealProgress);
 
 	// Reset 
 	void resetEntities();
