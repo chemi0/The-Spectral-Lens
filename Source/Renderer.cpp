@@ -524,8 +524,8 @@ void Renderer::renderEntities(const InputManager& input) {
 	glUseProgram(0);
 }
 
-bool Renderer::checkEntityClick(float mouseX, float mouseY, float lensRadius, float revealProgress) {
-	if (revealProgress <= 0.5f) return false;
+Entity* Renderer::checkEntityClick(float mouseX, float mouseY, float lensRadius, float revealProgress) {
+	if (revealProgress <= 0.5f) return nullptr;
 
 	// Convert mouse pos to UV space
 	float uvX = mouseX / static_cast<float>(m_windowWidth);
@@ -534,12 +534,12 @@ bool Renderer::checkEntityClick(float mouseX, float mouseY, float lensRadius, fl
 	for (auto& entity : m_entities) {
 		if (entity.found) continue;
 
-		float entityCenterX = entity.posX + entity.width * 0.5f;
-		float entityCenterY = entity.posY + entity.height * 0.5f;
-
 		// Check if mouse is within entity bounds
 		if (uvX >= entity.posX && uvX <= (entity.posX + entity.width) &&
 			uvY >= entity.posY && uvY <= (entity.posY + entity.height)) {
+
+			float entityCenterX = entity.posX + entity.width * 0.5f;
+			float entityCenterY = entity.posY + entity.height * 0.5f;
 
 			float entityScreenX = entityCenterX * static_cast<float>(m_windowWidth);
 			float entityScreenY = (1.0f - entityCenterY) * static_cast<float>(m_windowHeight);
@@ -548,13 +548,12 @@ bool Renderer::checkEntityClick(float mouseX, float mouseY, float lensRadius, fl
 									(entityScreenY - mouseY) * (entityScreenY - mouseY));
 
 			if (distToLens <= lensRadius) {
-				entity.found = true;
-				std::cout << "Entity found!" << std::endl;
-				return true;
+				std::cout << "Entity found! Starting Minigame..." << std::endl;
+				return &entity;
 			}
 		}
 	}
-	return false;
+	return nullptr;
 }
 
 void Renderer::resetEntities() {
