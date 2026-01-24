@@ -55,6 +55,19 @@ void InputManager::cursorPositionCallback(GLFWwindow* window, double xpos, doubl
 }
 
 void InputManager::keyCallBack(GLFWwindow* window, int key, int scancode, int action, int mods) {
+
+    InputManager& input = getInstance();
+
+    // General key tracking
+    if (key >= 0 && key < 1024) {
+        if (action == GLFW_PRESS) {
+            input.keys[key] = true;
+        }
+        else if (action == GLFW_RELEASE) {
+            input.keys[key] = false;
+        }
+    }
+
     if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS) {
         glfwSetWindowShouldClose(window, true);
     }
