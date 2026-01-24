@@ -1,4 +1,6 @@
 #include "../Header/GameStateManager.h"
+#include "../Header/TestMinigame.h"
+#include "../Header/RunnerMinigame.h"
 #include <iostream>
 
 void GameStateManager::update(float deltaTime) {
@@ -49,9 +51,10 @@ void GameStateManager::startMinigame(MovementType type, Entity* entity) {
 	currentState = GameState::MINIGAME_3D;
 
 	// The logic for which movement type goes for which minigame will go here (when I actually define all of the minigames)
+	currentMinigame = new RunnerMinigame(1920, 1080);
 
 	// Temp placeholder:
-	std::cout << "Minigame started (placeholder)." << std::endl;
+	std::cout << "3D Test Scene Initialized. Press SPACE to WIN." << std::endl;
 	// returnTo2D(true); // Uncomment later to test returning to 2D
 }
 
