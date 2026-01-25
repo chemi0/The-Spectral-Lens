@@ -7,10 +7,17 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
+enum ObstacleType {
+	GROUND, // Jump Over
+	FLYING_LOW // Duck Under
+
+};
+
 // Obstacle structure
 struct Obstacle {
 	glm::vec3 position;
 	bool active;
+	ObstacleType type;
 };
 
 class RunnerMinigame : public Minigame {
@@ -33,25 +40,33 @@ private:
 
 	// Game logic
 	float timeElapsed;
-	bool isGameOver;
-	bool playerWon;
-	float survivalTimer; // Player needs to survive for this duration to win
 
-	// Player State
-	int currentLane; // 0 = Left; 1 = Center; 2 = Right
-	float playerX; // Current visual X
-	float targetX; // Where the player wants to go
+	// Horizontal Movement (Lane Switching)
+	int currentLane;
+	float playerX, targetX;
+	bool wasRightPressed, wasLeftPressed = false;
+
+	// Vertical Movement (Jumping)
+	float playerY; // Current "height" of the player
+	float verticalVelocity;
+	bool isJumping;
+	const float GRAVITY = -35.0f;
+	const float JUMP_FORCE = 12.0f;
+
+	// Vertical Movement (Ducking)
+	float playerScaleY, targetScaleY; // Current target scale for ducking
+	const float DUCK_SPEED = 10.0f; // How fast the player ducks/stands up
 
 	// World Generation
 	std::vector<Obstacle> obstacles;
 	float spawnTimer;
 	float gameSpeed;
+	float survivalTimer;
+	bool isGameOver, playerWon;
 
 	// Helper functions
 	void spawnObstacle();
 	void resetGame();
 	void renderCube(glm::mat4 model, glm::vec3 color);
 
-	bool wasLeftPressed = false;
-	bool wasRightPressed = false;
 };
