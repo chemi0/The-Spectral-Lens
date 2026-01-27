@@ -4,6 +4,8 @@ out vec4 FragColor;
 in vec3 FragPos;
 in vec3 ViewPos;
 in vec2 TexCoord;
+in vec3 FragNormal;
+in mat3 TBN;
 
 // Texture slots
 uniform sampler2D texture_diffuse;   // 0
@@ -11,6 +13,7 @@ uniform sampler2D texture_emission;  // 1
 uniform sampler2D texture_roughness; // 2
 uniform sampler2D texture_ao;        // 3
 uniform sampler2D texture_opacity;   // 4
+uniform sampler2D texture_normal; // 5
 
 // Switches/Settings
 uniform bool useTexture; 
@@ -23,6 +26,8 @@ void main()
     vec3 emission = vec3(0.0);
     float roughness = 0.8; // Default to non-shiny
     float ao = 1.0;        // Default to full light
+
+    vec3 norm = normalize(FragNormal);
 
     if (useTexture) {
         // Opacity Check
@@ -43,31 +48,39 @@ void main()
 
         // Ambient Occlusion (Shadows)
         ao = texture(texture_ao, TexCoord).r;
+        
+        // Normal Mapping
+
+        // Normal from map [0, 1]
+        vec3 mapNormal = texture(texture_normal, TexCoord).rgb;
+
+        // Transform to [-1, 1] Space
+        mapNormal = mapNormal * 2.0 - 1.0;
+
+        // Transform from Tangent to World Space
+        norm = normalize(TBN * mapNormal);
     }
 
     // Lightning calculation
     
-    // Ambient Component (Global light + AO)
-    vec3 ambientLight = vec3(0.3, 0.3, 0.4); // Blue-ish moonlight
-    vec3 ambient = ambientLight * baseColor.rgb * ao; // <-- Apply AO here!
+    // Ambient Component
+    vec3 ambientLight = vec3(0.3, 0.3, 0.4); 
+    vec3 ambient = ambientLight * baseColor.rgb * ao; 
 
-    // Diffuse Component (Directional Light - e.g. Moon)
-    vec3 norm = normalize(cross(dFdx(FragPos), dFdy(FragPos))); // Flat normals for now
-    vec3 lightDir = normalize(vec3(0.5, 1.0, 0.3)); // Light coming from top-right
-    float diff = max(dot(norm, lightDir), 0.0);
+    // Diffuse Component
+    vec3 lightDir = normalize(vec3(0.5, 1.0, 0.3)); // Light direction
+    float diff = max(dot(norm, lightDir), 0.0);     // Mapped norm
     vec3 diffuse = diff * vec3(0.8) * baseColor.rgb;
 
-    // Specular Component (Shine based on Roughness)
+    // Specular Component
     vec3 viewDir = normalize(ViewPos - FragPos);
     vec3 reflectDir = reflect(-lightDir, norm);
     
-    // Invert roughness: Roughness 0 = Shiny 1.0
     float smoothness = 1.0 - roughness; 
-    float spec = pow(max(dot(viewDir, reflectDir), 0.0), 32.0); // 32 is shininess factor
-    vec3 specular = vec3(0.5) * spec * smoothness; // Modulate by smoothness
+    float spec = pow(max(dot(viewDir, reflectDir), 0.0), 32.0); 
+    vec3 specular = vec3(0.5) * spec * smoothness; 
 
-
-    // Combine Lighting
+    // Mix
     vec3 result = ambient + diffuse + specular;
 
     // Add Fog
@@ -76,7 +89,7 @@ void main()
     float fogFactor = clamp((distance - 10.0) / (50.0 - 10.0), 0.0, 1.0);
     result = mix(result, fogColor, fogFactor);
 
-    // Add Emission LAST (So it glows through everything)
+    // Add Emission (Glow cuts through everything)
     result += emission;
 
     FragColor = vec4(result, baseColor.a);

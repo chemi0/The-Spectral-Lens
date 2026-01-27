@@ -31,6 +31,7 @@ public:
     unsigned int roughnessTex; // ..
     unsigned int aoTex;
     unsigned int opacityTex;
+    unsigned int normalMapTex;
 
     // Draws the model
     void render();

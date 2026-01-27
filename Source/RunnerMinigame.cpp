@@ -108,6 +108,9 @@ RunnerMinigame::RunnerMinigame(int width, int height)
 
     playerModel.opacityTex = playerModel.loadTexture("Resources/RunnerCharacter/cat_Opacity.png");
     if (playerModel.opacityTex == 0) std::cerr << "Failed to load opacity texture!" << std::endl;
+
+    playerModel.opacityTex = playerModel.loadTexture("Resources/RunnerCharacter/cat_Normal.png");
+    if (playerModel.opacityTex == 0) std::cerr << "Failed to load normal texture!" << std::endl;
 	
 }
 
@@ -298,7 +301,7 @@ void RunnerMinigame::render() {
     playerMatrix = glm::scale(playerMatrix, glm::vec3(0.005f));
 
     // Rotation
-    playerMatrix = glm::rotate(playerMatrix, glm::radians(180.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+    //playerMatrix = glm::rotate(playerMatrix, glm::radians(180.0f), glm::vec3(0.0f, 1.0f, 0.0f));
 
     // Ducking animation
     float centerOffset = (1.0f - playerScaleY) * -0.5f;
@@ -328,6 +331,10 @@ void RunnerMinigame::render() {
     //glBindTexture(GL_TEXTURE_2D, playerModel.opacityTex);
     //glUniform1i(glGetUniformLocation(shaderProgram, "texture_opacity"), 4);
 
+    //glActiveTexture(GL_TEXTURE5); // Slot 5
+    //glBindTexture(GL_TEXTURE_2D, playerModel.normalMapTex);
+    //glUniform1i(glGetUniformLocation(shaderProgram, "texture_normal"), 5);
+
     //glUniform1i(glGetUniformLocation(shaderProgram, "useTexture"), 1);
 
     glUniform1i(glGetUniformLocation(shaderProgram, "useTexture"), 1);
@@ -336,6 +343,7 @@ void RunnerMinigame::render() {
     glUniform1i(glGetUniformLocation(shaderProgram, "texture_roughness"), 2);
     glUniform1i(glGetUniformLocation(shaderProgram, "texture_ao"), 3);
     glUniform1i(glGetUniformLocation(shaderProgram, "texture_opacity"), 4);
+    glUniform1i(glGetUniformLocation(shaderProgram, "texture_normal"), 5);
 
     // Draw
     playerModel.render();
@@ -369,6 +377,10 @@ void RunnerMinigame::renderCube(glm::mat4 model, glm::vec3 color) {
     glUniform1i(useTexLoc, 0); // False (0) = Use Solid Color
 
     glBindVertexArray(VAO);
+
+    glDisableVertexAttribArray(3); // Disable tangents for Cubes -> safety
+    glVertexAttrib3f(3, 1.0f, 0.0f, 0.0f);
+
 	glDrawArrays(GL_TRIANGLES, 0, 36);
 }
 

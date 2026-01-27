@@ -20,7 +20,7 @@ bool Model::loadModel(const std::string& filepath) {
     // aiProcess_FlipUVs: Flip texture coordinates for OpenGL
     // aiProcess_GenNormals: Create normals if they are missing
     const aiScene* scene = importer.ReadFile(filepath,
-        aiProcess_Triangulate | aiProcess_FlipUVs | aiProcess_GenNormals);
+        aiProcess_Triangulate | aiProcess_FlipUVs | aiProcess_GenNormals | aiProcess_CalcTangentSpace);
 
     // Check for errors
     if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode) {
@@ -78,6 +78,17 @@ Mesh Model::processMesh(aiMesh* mesh, const aiScene* scene) {
         else {
             vertices.push_back(0.0f); vertices.push_back(1.0f); vertices.push_back(0.0f);
         }
+
+        // Tangents (FOR NORMAL TEXTURE, to make the light bounce off realistically)
+        if (mesh->HasTangentsAndBitangents()) {
+            vertices.push_back(mesh->mTangents[i].x);
+            vertices.push_back(mesh->mTangents[i].y);
+            vertices.push_back(mesh->mTangents[i].z);
+        }
+        else {
+            vertices.push_back(1.0f); vertices.push_back(0.0f); vertices.push_back(0.0f);
+        }
+
     }
 
     // Process Indices (Faces)
@@ -104,16 +115,20 @@ Mesh Model::processMesh(aiMesh* mesh, const aiScene* scene) {
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(unsigned int), indices.data(), GL_STATIC_DRAW);
 
     // Layout 0: Position
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 11 * sizeof(float), (void*)0);
     glEnableVertexAttribArray(0);
 
     // Layout 1: UV
-    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(3 * sizeof(float)));
+    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 11 * sizeof(float), (void*)(3 * sizeof(float)));
     glEnableVertexAttribArray(1);
 
     // Layout 2: Normal
-    glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(5 * sizeof(float)));
+    glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 11 * sizeof(float), (void*)(5 * sizeof(float)));
     glEnableVertexAttribArray(2);
+
+    // Layout 3: Tangent
+    glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, 11 * sizeof(float), (void*)(8 * sizeof(float)));
+    glEnableVertexAttribArray(3);
 
     glBindVertexArray(0);
 
