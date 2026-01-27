@@ -157,9 +157,10 @@ void Model::render() {
     glActiveTexture(GL_TEXTURE0);
 }
 
-bool Model::loadTexture(const std::string& filepath) {
-    glGenTextures(1, &textureID);
-    glBindTexture(GL_TEXTURE_2D, textureID);
+unsigned int Model::loadTexture(const std::string& filepath) {
+    unsigned int id;
+    glGenTextures(1, &id);
+    glBindTexture(GL_TEXTURE_2D, id);
     
     // Wrapping/Filtering options
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
@@ -174,18 +175,24 @@ bool Model::loadTexture(const std::string& filepath) {
 
     if (data) {
         GLenum format = GL_RGB;
-        if (nrChannels == 4) format = GL_RGBA;
+        if (nrChannels == 1)
+            format = GL_RED;
+        else if (nrChannels == 3)
+            format = GL_RGB;
+        else if (nrChannels == 4) 
+            format = GL_RGBA;
 
         glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, format, GL_UNSIGNED_BYTE, data);
         glGenerateMipmap(GL_TEXTURE_2D);
 
         std::cout << "Texture Loaded: " << filepath << std::endl;
         stbi_image_free(data);
-        return true;
+        
+        return id;
     }
     else {
         std::cout << "Failed to load texture: " << filepath << std::endl;
         stbi_image_free(data);
-        return false;
+        return 0;
     }
 }

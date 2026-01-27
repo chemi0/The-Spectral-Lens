@@ -308,27 +308,34 @@ void RunnerMinigame::render() {
     glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(playerMatrix));
 
     // Texture binding before rendering (fix)
-    glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, playerModel.diffuseTex);
-    glUniform1i(glGetUniformLocation(shaderProgram, "texture_diffuse"), 0);
+    //glActiveTexture(GL_TEXTURE0);
+    //glBindTexture(GL_TEXTURE_2D, playerModel.diffuseTex);
+    //glUniform1i(glGetUniformLocation(shaderProgram, "texture_diffuse"), 0);
 
-    glActiveTexture(GL_TEXTURE1);
-    glBindTexture(GL_TEXTURE_2D, playerModel.emissionTex);
-    glUniform1i(glGetUniformLocation(shaderProgram, "texture_emission"), 1);
+    //glActiveTexture(GL_TEXTURE1);
+    //glBindTexture(GL_TEXTURE_2D, playerModel.emissionTex);
+    //glUniform1i(glGetUniformLocation(shaderProgram, "texture_emission"), 1);
 
-    glActiveTexture(GL_TEXTURE2);
-    glBindTexture(GL_TEXTURE_2D, playerModel.roughnessTex);
-    glUniform1i(glGetUniformLocation(shaderProgram, "texture_roughness"), 2);
+    //glActiveTexture(GL_TEXTURE2);
+    //glBindTexture(GL_TEXTURE_2D, playerModel.roughnessTex);
+    //glUniform1i(glGetUniformLocation(shaderProgram, "texture_roughness"), 2);
 
-    glActiveTexture(GL_TEXTURE3);
-    glBindTexture(GL_TEXTURE_2D, playerModel.aoTex);
-    glUniform1i(glGetUniformLocation(shaderProgram, "texture_ao"), 3);
+    //glActiveTexture(GL_TEXTURE3);
+    //glBindTexture(GL_TEXTURE_2D, playerModel.aoTex);
+    //glUniform1i(glGetUniformLocation(shaderProgram, "texture_ao"), 3);
 
-    glActiveTexture(GL_TEXTURE4);
-    glBindTexture(GL_TEXTURE_2D, playerModel.opacityTex);
-    glUniform1i(glGetUniformLocation(shaderProgram, "texture_opacity"), 4);
+    //glActiveTexture(GL_TEXTURE4);
+    //glBindTexture(GL_TEXTURE_2D, playerModel.opacityTex);
+    //glUniform1i(glGetUniformLocation(shaderProgram, "texture_opacity"), 4);
+
+    //glUniform1i(glGetUniformLocation(shaderProgram, "useTexture"), 1);
 
     glUniform1i(glGetUniformLocation(shaderProgram, "useTexture"), 1);
+    glUniform1i(glGetUniformLocation(shaderProgram, "texture_diffuse"), 0);
+    glUniform1i(glGetUniformLocation(shaderProgram, "texture_emission"), 1);
+    glUniform1i(glGetUniformLocation(shaderProgram, "texture_roughness"), 2);
+    glUniform1i(glGetUniformLocation(shaderProgram, "texture_ao"), 3);
+    glUniform1i(glGetUniformLocation(shaderProgram, "texture_opacity"), 4);
 
     // Draw
     playerModel.render();

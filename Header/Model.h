@@ -22,7 +22,7 @@ public:
     // Main function to load the file
     bool loadModel(const std::string& filepath);
 
-    bool loadTexture(const std::string& filepath);
+    unsigned int loadTexture(const std::string& filepath);
     unsigned int textureID;
 
     // Texture Slots

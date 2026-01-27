@@ -27,7 +27,7 @@ void main()
     if (useTexture) {
         // Opacity Check
         float alpha = texture(texture_opacity, TexCoord).r;
-        if(alpha < 0.1) discard; 
+        //if(alpha < 0.1) discard; 
 
         // Diffuse (Base Color)
         baseColor = texture(texture_diffuse, TexCoord);
