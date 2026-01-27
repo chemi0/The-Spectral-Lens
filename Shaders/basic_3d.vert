@@ -1,6 +1,8 @@
 #version 330 core
 layout (location = 0) in vec3 aPos;
-layout (location = 1) in vec3 aColor; // Just using vertex colors for now
+layout (location = 1) in vec2 aTexCoord; // Assimp UVs
+layout (location = 2) in vec3 aNormal; // Assimp Normals
+
 
 uniform mat4 model;
 uniform mat4 view;
@@ -10,6 +12,8 @@ uniform vec3 uColor;
 out vec3 VertexColor;
 out vec3 FragPos; // World Position
 out vec3 ViewPos; // Camera Position
+
+//out vec2 TexCoord; // Uncomment later after adding textures
 
 uniform vec3 cameraPos;
 

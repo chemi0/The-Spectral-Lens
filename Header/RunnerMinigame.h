@@ -1,6 +1,7 @@
 #pragma once
 #include "Minigame.h"
 #include "Camera.h"
+#include "Model.h"
 #include "Util.h"
 #include <vector>
 #include <glm/glm.hpp>
@@ -68,5 +69,7 @@ private:
 	void spawnObstacle();
 	void resetGame();
 	void renderCube(glm::mat4 model, glm::vec3 color);
+
+	Model playerModel;
 
 };

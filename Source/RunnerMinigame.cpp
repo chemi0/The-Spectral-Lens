@@ -49,6 +49,10 @@ RunnerMinigame::RunnerMinigame(int width, int height)
 
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
 	glEnableVertexAttribArray(0);
+
+    if (!playerModel.loadModel("Resources/RunnerCharacter/cat_with_lights.obj")) {
+        std::cout << "Failed to load character model!" << std::endl;
+    }
 	
 }
 
@@ -227,19 +231,35 @@ void RunnerMinigame::render() {
 	glUniformMatrix4fv(projLoc, 1, GL_FALSE, glm::value_ptr(projection));
     glUniform3fv(camPosLoc, 1, glm::value_ptr(camera.Position));
 
-    // Player [Currently just a green cube, placeholder until the actual model is done]
-    glm::mat4 playerModel = glm::mat4(1.0f);
+    // 1. Calculate Player Matrix
+    glm::mat4 playerMatrix = glm::mat4(1.0f);
 
-    playerModel = glm::translate(playerModel, glm::vec3(playerX, playerY, 0.0f));
-    
-    // Pivot adjustment
+    // World Position
+    playerMatrix = glm::translate(playerMatrix, glm::vec3(playerX, playerY, 0.0f));
+
+    // Global Scale (Scaledown of the Model)
+    playerMatrix = glm::scale(playerMatrix, glm::vec3(0.005f));
+
+    // Rotation
+    playerMatrix = glm::rotate(playerMatrix, glm::radians(-90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
+
+    // Ducking animation
     float centerOffset = (1.0f - playerScaleY) * -0.5f;
-	playerModel = glm::translate(playerModel, glm::vec3(0.0f, centerOffset, 0.0f));
+    playerMatrix = glm::translate(playerMatrix, glm::vec3(0.0f, centerOffset * 20.0f, 0.0f));
+    playerMatrix = glm::scale(playerMatrix, glm::vec3(1.0f, playerScaleY, 1.0f));
 
-    // Scale
-	playerModel = glm::scale(playerModel, glm::vec3(1.0f, playerScaleY, 1.0f));
+    // ---------------------------------------------------------
 
-	renderCube(playerModel, glm::vec3(0.0f, 1.0f, 0.0f));
+    // Send Matrix
+    unsigned int modelLoc = glGetUniformLocation(shaderProgram, "model");
+    glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(playerMatrix));
+
+    // Color (Green)
+    unsigned int colorLoc = glGetUniformLocation(shaderProgram, "uColor");
+    glUniform3f(colorLoc, 0.0f, 1.0f, 0.0f);
+
+    // Draw
+    playerModel.render();
 
     // Obstacles [Red cubes, placeholders for the actual obstacle models]
     for (const auto& obs : obstacles) {
