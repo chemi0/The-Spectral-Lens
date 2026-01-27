@@ -22,37 +22,92 @@ RunnerMinigame::RunnerMinigame(int width, int height)
 	// Cube Mesh (For the player, obstacles, floor)
     float vertices[] = {
         // Back face
-        -0.5f, -0.5f, -0.5f,  0.5f, -0.5f, -0.5f,  0.5f,  0.5f, -0.5f,
-         0.5f,  0.5f, -0.5f, -0.5f,  0.5f, -0.5f, -0.5f, -0.5f, -0.5f,
+        -0.5f, -0.5f, -0.5f,  0.0f, 0.0f,  0.0f,  0.0f, -1.0f,
+         0.5f, -0.5f, -0.5f,  1.0f, 0.0f,  0.0f,  0.0f, -1.0f,
+         0.5f,  0.5f, -0.5f,  1.0f, 1.0f,  0.0f,  0.0f, -1.0f,
+         0.5f,  0.5f, -0.5f,  1.0f, 1.0f,  0.0f,  0.0f, -1.0f,
+        -0.5f,  0.5f, -0.5f,  0.0f, 1.0f,  0.0f,  0.0f, -1.0f,
+        -0.5f, -0.5f, -0.5f,  0.0f, 0.0f,  0.0f,  0.0f, -1.0f,
+
         // Front face
-        -0.5f, -0.5f,  0.5f,  0.5f, -0.5f,  0.5f,  0.5f,  0.5f,  0.5f,
-         0.5f,  0.5f,  0.5f, -0.5f,  0.5f,  0.5f, -0.5f, -0.5f,  0.5f,
+        -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,  0.0f,  0.0f, 1.0f,
+         0.5f, -0.5f,  0.5f,  1.0f, 0.0f,  0.0f,  0.0f, 1.0f,
+         0.5f,  0.5f,  0.5f,  1.0f, 1.0f,  0.0f,  0.0f, 1.0f,
+         0.5f,  0.5f,  0.5f,  1.0f, 1.0f,  0.0f,  0.0f, 1.0f,
+        -0.5f,  0.5f,  0.5f,  0.0f, 1.0f,  0.0f,  0.0f, 1.0f,
+        -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,  0.0f,  0.0f, 1.0f,
+
         // Left face
-        -0.5f,  0.5f,  0.5f, -0.5f,  0.5f, -0.5f, -0.5f, -0.5f, -0.5f,
-        -0.5f, -0.5f, -0.5f, -0.5f, -0.5f,  0.5f, -0.5f,  0.5f,  0.5f,
+        -0.5f,  0.5f,  0.5f,  1.0f, 0.0f, -1.0f,  0.0f,  0.0f,
+        -0.5f,  0.5f, -0.5f,  1.0f, 1.0f, -1.0f,  0.0f,  0.0f,
+        -0.5f, -0.5f, -0.5f,  0.0f, 1.0f, -1.0f,  0.0f,  0.0f,
+        -0.5f, -0.5f, -0.5f,  0.0f, 1.0f, -1.0f,  0.0f,  0.0f,
+        -0.5f, -0.5f,  0.5f,  0.0f, 0.0f, -1.0f,  0.0f,  0.0f,
+        -0.5f,  0.5f,  0.5f,  1.0f, 0.0f, -1.0f,  0.0f,  0.0f,
+
         // Right face
-         0.5f,  0.5f,  0.5f,  0.5f,  0.5f, -0.5f,  0.5f, -0.5f, -0.5f,
-         0.5f, -0.5f, -0.5f,  0.5f, -0.5f,  0.5f,  0.5f,  0.5f,  0.5f,
-        // Bottom face
-        -0.5f, -0.5f, -0.5f,  0.5f, -0.5f, -0.5f,  0.5f, -0.5f,  0.5f,
-         0.5f, -0.5f,  0.5f, -0.5f, -0.5f,  0.5f, -0.5f, -0.5f, -0.5f
-        // Top face
-        -0.5f,  0.5f, -0.5f,  0.5f,  0.5f, -0.5f,  0.5f,  0.5f,  0.5f,
-         0.5f,  0.5f,  0.5f, -0.5f,  0.5f,  0.5f, -0.5f,  0.5f, -0.5f
+         0.5f,  0.5f,  0.5f,  1.0f, 0.0f,  1.0f,  0.0f,  0.0f,
+         0.5f,  0.5f, -0.5f,  1.0f, 1.0f,  1.0f,  0.0f,  0.0f,
+         0.5f, -0.5f, -0.5f,  0.0f, 1.0f,  1.0f,  0.0f,  0.0f,
+         0.5f, -0.5f, -0.5f,  0.0f, 1.0f,  1.0f,  0.0f,  0.0f,
+         0.5f, -0.5f,  0.5f,  0.0f, 0.0f,  1.0f,  0.0f,  0.0f,
+         0.5f,  0.5f,  0.5f,  1.0f, 0.0f,  1.0f,  0.0f,  0.0f,
+
+         // Bottom face
+         -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,  0.0f, -1.0f,  0.0f,
+          0.5f, -0.5f, -0.5f,  1.0f, 1.0f,  0.0f, -1.0f,  0.0f,
+          0.5f, -0.5f,  0.5f,  1.0f, 0.0f,  0.0f, -1.0f,  0.0f,
+          0.5f, -0.5f,  0.5f,  1.0f, 0.0f,  0.0f, -1.0f,  0.0f,
+         -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,  0.0f, -1.0f,  0.0f,
+         -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,  0.0f, -1.0f,  0.0f,
+
+         // Top face
+         -0.5f,  0.5f, -0.5f,  0.0f, 1.0f,  0.0f,  1.0f,  0.0f,
+          0.5f,  0.5f, -0.5f,  1.0f, 1.0f,  0.0f,  1.0f,  0.0f,
+          0.5f,  0.5f,  0.5f,  1.0f, 0.0f,  0.0f,  1.0f,  0.0f,
+          0.5f,  0.5f,  0.5f,  1.0f, 0.0f,  0.0f,  1.0f,  0.0f,
+         -0.5f,  0.5f,  0.5f,  0.0f, 0.0f,  0.0f,  1.0f,  0.0f,
+         -0.5f,  0.5f, -0.5f,  0.0f, 1.0f,  0.0f,  1.0f,  0.0f
     };
 
-	glGenVertexArrays(1, &VAO);
-	glGenBuffers(1, &VBO);
+    glGenVertexArrays(1, &VAO);
+    glGenBuffers(1, &VBO);
     glBindVertexArray(VAO);
-	glBindBuffer(GL_ARRAY_BUFFER, VBO);
+    glBindBuffer(GL_ARRAY_BUFFER, VBO);
     glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
 
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
-	glEnableVertexAttribArray(0);
+    // Attribute 0: Position
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0);
+    glEnableVertexAttribArray(0);
+
+    // Attribute 1: UV (Texture Coords)
+    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(3 * sizeof(float)));
+    glEnableVertexAttribArray(1);
+
+    // Attribute 2: Normal
+    glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(5 * sizeof(float)));
+    glEnableVertexAttribArray(2);
 
     if (!playerModel.loadModel("Resources/RunnerCharacter/cat_with_lights.obj")) {
-        std::cout << "Failed to load character model!" << std::endl;
+        std::cerr << "Failed to load character model!" << std::endl;
+        return;
     }
+
+    // Verify textures loaded (0 means failed to load)
+    playerModel.diffuseTex = playerModel.loadTexture("Resources/RunnerCharacter/cat_diffuse.png");
+    if (playerModel.diffuseTex == 0) std::cerr << "Failed to load diffuse texture!" << std::endl;
+
+    playerModel.emissionTex = playerModel.loadTexture("Resources/RunnerCharacter/cat_Emissive.png");
+    if (playerModel.emissionTex == 0) std::cerr << "Failed to load emission texture!" << std::endl;
+
+    playerModel.roughnessTex = playerModel.loadTexture("Resources/RunnerCharacter/cat_Roughness.png");
+    if (playerModel.roughnessTex == 0) std::cerr << "Failed to load roughness texture!" << std::endl;
+
+    playerModel.aoTex = playerModel.loadTexture("Resources/RunnerCharacter/cat_AmbientOcclusion.png");
+    if (playerModel.aoTex == 0) std::cerr << "Failed to load AO texture!" << std::endl;
+
+    playerModel.opacityTex = playerModel.loadTexture("Resources/RunnerCharacter/cat_Opacity.png");
+    if (playerModel.opacityTex == 0) std::cerr << "Failed to load opacity texture!" << std::endl;
 	
 }
 
@@ -226,12 +281,14 @@ void RunnerMinigame::render() {
 	unsigned int viewLoc = glGetUniformLocation(shaderProgram, "view");
     unsigned int projLoc = glGetUniformLocation(shaderProgram, "projection");
 	unsigned int camPosLoc = glGetUniformLocation(shaderProgram, "cameraPos");
+    unsigned int modelLoc = glGetUniformLocation(shaderProgram, "model");
+    glUniform3fv(camPosLoc, 1, glm::value_ptr(camera.Position));
 
     glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
 	glUniformMatrix4fv(projLoc, 1, GL_FALSE, glm::value_ptr(projection));
     glUniform3fv(camPosLoc, 1, glm::value_ptr(camera.Position));
 
-    // 1. Calculate Player Matrix
+    // Calculate Player Matrix
     glm::mat4 playerMatrix = glm::mat4(1.0f);
 
     // World Position
@@ -241,22 +298,37 @@ void RunnerMinigame::render() {
     playerMatrix = glm::scale(playerMatrix, glm::vec3(0.005f));
 
     // Rotation
-    playerMatrix = glm::rotate(playerMatrix, glm::radians(-90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
+    playerMatrix = glm::rotate(playerMatrix, glm::radians(180.0f), glm::vec3(0.0f, 1.0f, 0.0f));
 
     // Ducking animation
     float centerOffset = (1.0f - playerScaleY) * -0.5f;
     playerMatrix = glm::translate(playerMatrix, glm::vec3(0.0f, centerOffset * 20.0f, 0.0f));
     playerMatrix = glm::scale(playerMatrix, glm::vec3(1.0f, playerScaleY, 1.0f));
 
-    // ---------------------------------------------------------
-
-    // Send Matrix
-    unsigned int modelLoc = glGetUniformLocation(shaderProgram, "model");
     glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(playerMatrix));
 
-    // Color (Green)
-    unsigned int colorLoc = glGetUniformLocation(shaderProgram, "uColor");
-    glUniform3f(colorLoc, 0.0f, 1.0f, 0.0f);
+    // Texture binding before rendering (fix)
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, playerModel.diffuseTex);
+    glUniform1i(glGetUniformLocation(shaderProgram, "texture_diffuse"), 0);
+
+    glActiveTexture(GL_TEXTURE1);
+    glBindTexture(GL_TEXTURE_2D, playerModel.emissionTex);
+    glUniform1i(glGetUniformLocation(shaderProgram, "texture_emission"), 1);
+
+    glActiveTexture(GL_TEXTURE2);
+    glBindTexture(GL_TEXTURE_2D, playerModel.roughnessTex);
+    glUniform1i(glGetUniformLocation(shaderProgram, "texture_roughness"), 2);
+
+    glActiveTexture(GL_TEXTURE3);
+    glBindTexture(GL_TEXTURE_2D, playerModel.aoTex);
+    glUniform1i(glGetUniformLocation(shaderProgram, "texture_ao"), 3);
+
+    glActiveTexture(GL_TEXTURE4);
+    glBindTexture(GL_TEXTURE_2D, playerModel.opacityTex);
+    glUniform1i(glGetUniformLocation(shaderProgram, "texture_opacity"), 4);
+
+    glUniform1i(glGetUniformLocation(shaderProgram, "useTexture"), 1);
 
     // Draw
     playerModel.render();
@@ -283,9 +355,11 @@ void RunnerMinigame::render() {
 void RunnerMinigame::renderCube(glm::mat4 model, glm::vec3 color) {
 	unsigned int modelLoc = glGetUniformLocation(shaderProgram, "model");
     unsigned int colorLoc = glGetUniformLocation(shaderProgram, "uColor");
+    unsigned int useTexLoc = glGetUniformLocation(shaderProgram, "useTexture");
 
     glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
     glUniform3fv(colorLoc, 1, glm::value_ptr(color));
+    glUniform1i(useTexLoc, 0); // False (0) = Use Solid Color
 
     glBindVertexArray(VAO);
 	glDrawArrays(GL_TRIANGLES, 0, 36);

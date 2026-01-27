@@ -13,7 +13,7 @@ out vec3 VertexColor;
 out vec3 FragPos; // World Position
 out vec3 ViewPos; // Camera Position
 
-//out vec2 TexCoord; // Uncomment later after adding textures
+out vec2 TexCoord;
 
 uniform vec3 cameraPos;
 
@@ -22,6 +22,7 @@ void main() {
 	vec4 worldPosition = model * vec4(aPos, 1.0);
 	FragPos = vec3(worldPosition);
 	ViewPos = cameraPos;
+	TexCoord = aTexCoord;
 
 	gl_Position = projection * view * worldPosition;
 	VertexColor = uColor;

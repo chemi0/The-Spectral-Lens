@@ -22,6 +22,16 @@ public:
     // Main function to load the file
     bool loadModel(const std::string& filepath);
 
+    bool loadTexture(const std::string& filepath);
+    unsigned int textureID;
+
+    // Texture Slots
+    unsigned int diffuseTex; // Slot 0 
+    unsigned int emissionTex; // Slot 1
+    unsigned int roughnessTex; // ..
+    unsigned int aoTex;
+    unsigned int opacityTex;
+
     // Draws the model
     void render();
 
