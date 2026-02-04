@@ -19,6 +19,11 @@ uniform sampler2D texture_normal; // 5
 uniform bool useTexture; 
 uniform vec3 uColor; 
 
+// Fog settings (controllable from code)
+uniform bool useFog;
+uniform float fogDensity;
+uniform vec3 fogColor;
+
 void main()
 {
     // Defaults (if no texture)
@@ -83,11 +88,20 @@ void main()
     // Mix
     vec3 result = ambient + diffuse + specular;
 
-    // Add Fog
+    // Add Fog (use uniform parameters if useFog is true, else use defaults)
     float distance = length(ViewPos - FragPos);
-    vec3 fogColor = vec3(0.1f, 0.15f, 0.12f); 
-    float fogFactor = clamp((distance - 10.0) / (50.0 - 10.0), 0.0, 1.0);
-    result = mix(result, fogColor, fogFactor);
+    
+    if (useFog) {
+        // Exponential fog for denser effect
+        float fogFactor = 1.0 - exp(-fogDensity * distance);
+        fogFactor = clamp(fogFactor, 0.0, 1.0);
+        result = mix(result, fogColor, fogFactor);
+    } else {
+        // Default fog (original behavior)
+        vec3 defaultFogColor = vec3(0.1f, 0.15f, 0.12f); 
+        float fogFactor = clamp((distance - 10.0) / (50.0 - 10.0), 0.0, 1.0);
+        result = mix(result, defaultFogColor, fogFactor);
+    }
 
     // Add Emission (Glow cuts through everything)
     result += emission;
