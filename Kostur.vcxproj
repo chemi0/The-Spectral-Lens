@@ -128,6 +128,7 @@
     <ClCompile Include="Source\InputManager.cpp" />
     <ClCompile Include="Source\Main.cpp" />
     <ClCompile Include="Source\Model.cpp" />
+    <ClCompile Include="Source\PlatformerMinigame.cpp" />
     <ClCompile Include="Source\Renderer.cpp" />
     <ClCompile Include="Source\RunnerMinigame.cpp" />
     <ClCompile Include="Source\TestMinigame.cpp" />
@@ -139,6 +140,7 @@
     <ClInclude Include="Header\GameStateManager.h" />
     <ClInclude Include="Header\Minigame.h" />
     <ClInclude Include="Header\Model.h" />
+    <ClInclude Include="Header\PlatformerMinigame.h" />
     <ClInclude Include="Header\Renderer.h" />
     <ClInclude Include="Header\RunnerMinigame.h" />
     <ClInclude Include="Header\stb_image.h" />
