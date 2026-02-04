@@ -127,6 +127,7 @@
     <ClCompile Include="Source\GameStateManager.cpp" />
     <ClCompile Include="Source\InputManager.cpp" />
     <ClCompile Include="Source\Main.cpp" />
+    <ClCompile Include="Source\Model.cpp" />
     <ClCompile Include="Source\Renderer.cpp" />
     <ClCompile Include="Source\RunnerMinigame.cpp" />
     <ClCompile Include="Source\TestMinigame.cpp" />
@@ -137,6 +138,7 @@
     <ClInclude Include="Header\Camera.h" />
     <ClInclude Include="Header\GameStateManager.h" />
     <ClInclude Include="Header\Minigame.h" />
+    <ClInclude Include="Header\Model.h" />
     <ClInclude Include="Header\Renderer.h" />
     <ClInclude Include="Header\RunnerMinigame.h" />
     <ClInclude Include="Header\stb_image.h" />
@@ -158,6 +160,8 @@
     <Import Project="packages\glfw.3.4.0\build\native\glfw.targets" Condition="Exists('packages\glfw.3.4.0\build\native\glfw.targets')" />
     <Import Project="packages\glew-2.2.0.2.2.0.1\build\native\glew-2.2.0.targets" Condition="Exists('packages\glew-2.2.0.2.2.0.1\build\native\glew-2.2.0.targets')" />
     <Import Project="packages\glm.1.0.3\build\native\glm.targets" Condition="Exists('packages\glm.1.0.3\build\native\glm.targets')" />
+    <Import Project="packages\Assimp.redist.3.0.0\build\native\Assimp.redist.targets" Condition="Exists('packages\Assimp.redist.3.0.0\build\native\Assimp.redist.targets')" />
+    <Import Project="packages\Assimp.3.0.0\build\native\Assimp.targets" Condition="Exists('packages\Assimp.3.0.0\build\native\Assimp.targets')" />
   </ImportGroup>
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
     <PropertyGroup>
@@ -166,5 +170,7 @@
     <Error Condition="!Exists('packages\glfw.3.4.0\build\native\glfw.targets')" Text="$([System.String]::Format('$(ErrorText)', 'packages\glfw.3.4.0\build\native\glfw.targets'))" />
     <Error Condition="!Exists('packages\glew-2.2.0.2.2.0.1\build\native\glew-2.2.0.targets')" Text="$([System.String]::Format('$(ErrorText)', 'packages\glew-2.2.0.2.2.0.1\build\native\glew-2.2.0.targets'))" />
     <Error Condition="!Exists('packages\glm.1.0.3\build\native\glm.targets')" Text="$([System.String]::Format('$(ErrorText)', 'packages\glm.1.0.3\build\native\glm.targets'))" />
+    <Error Condition="!Exists('packages\Assimp.redist.3.0.0\build\native\Assimp.redist.targets')" Text="$([System.String]::Format('$(ErrorText)', 'packages\Assimp.redist.3.0.0\build\native\Assimp.redist.targets'))" />
+    <Error Condition="!Exists('packages\Assimp.3.0.0\build\native\Assimp.targets')" Text="$([System.String]::Format('$(ErrorText)', 'packages\Assimp.3.0.0\build\native\Assimp.targets'))" />
   </Target>
 </Project>
