@@ -125,6 +125,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="Source\GameStateManager.cpp" />
+    <ClCompile Include="Source\HiddenMinigame.cpp" />
     <ClCompile Include="Source\InputManager.cpp" />
     <ClCompile Include="Source\Main.cpp" />
     <ClCompile Include="Source\Model.cpp" />
@@ -138,6 +139,7 @@
     <ClInclude Include="Entity.h" />
     <ClInclude Include="Header\Camera.h" />
     <ClInclude Include="Header\GameStateManager.h" />
+    <ClInclude Include="Header\HiddenMinigame.h" />
     <ClInclude Include="Header\Minigame.h" />
     <ClInclude Include="Header\Model.h" />
     <ClInclude Include="Header\PlatformerMinigame.h" />

@@ -2,6 +2,7 @@
 #include "../Header/TestMinigame.h"
 #include "../Header/RunnerMinigame.h"
 #include "../Header/PlatformerMinigame.h"
+#include "../Header/HiddenMinigame.h"
 #include <iostream>
 
 void GameStateManager::update(float deltaTime) {
@@ -61,6 +62,11 @@ void GameStateManager::startMinigame(MovementType type, Entity* entity) {
 		case MovementType::Bounce:
 			currentMinigame = new PlatformerMinigame(1920, 1080);
 			std::cout << "Platformer Minigame Started!" << std::endl;
+			break;
+			
+		case MovementType::Static:
+			currentMinigame = new HiddenMinigame(1920, 1080);
+			std::cout << "Hidden Minigame Started!" << std::endl;
 			break;
 			
 		default:
