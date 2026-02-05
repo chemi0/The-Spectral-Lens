@@ -10,6 +10,7 @@ enum class ObjectType {
     GROUND,
     HOUSE_WALL,
     HOUSE_ROOF,
+    HOUSE_DOOR,     // Special door that only appears with lens
     TREE_TRUNK,
     TREE_LEAVES,
     ROCK,
@@ -24,6 +25,7 @@ struct SceneObject {
     glm::vec3 rotation;  // Euler angles in degrees
     glm::vec3 color;
     ObjectType type;
+    bool hasCollision = true;  // Whether this object blocks player movement
 };
 
 class HiddenMinigame : public Minigame {
@@ -67,6 +69,7 @@ private:
     const float MOVE_SPEED = 5.0f;
     const float MOUSE_SENSITIVITY = 0.1f;
     const float PLAYER_HEIGHT = 1.7f;
+    const float PLAYER_RADIUS = 0.4f;  // Collision radius for player
 
     // Fog settings
     const float FOG_DENSITY_NORMAL = 0.15f;   // Heavy fog normally
@@ -107,6 +110,7 @@ private:
 
     // Collision detection
     bool checkCollision(glm::vec3 newPos);
+    bool checkAABBCollision(glm::vec3 playerPos, float playerRadius, const SceneObject& obj);
     
     // Input handling
     void processMouseMovement(float xoffset, float yoffset);

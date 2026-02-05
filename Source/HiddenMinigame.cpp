@@ -97,6 +97,7 @@ HiddenMinigame::HiddenMinigame(int width, int height)
     std::cout << "Press SPACE to start!" << std::endl;
     std::cout << "Controls: WASD = Move, Mouse = Look, Hold E = Use Lens/Flashlight" << std::endl;
     std::cout << "Find the hidden cat before time runs out!" << std::endl;
+    std::cout << "Hint: The door only appears when using the lens..." << std::endl;
 }
 
 HiddenMinigame::~HiddenMinigame() {
@@ -114,6 +115,7 @@ void HiddenMinigame::initializeScene() {
     ground.rotation = glm::vec3(0.0f);
     ground.color = glm::vec3(0.15f, 0.25f, 0.1f);
     ground.type = ObjectType::GROUND;
+    ground.hasCollision = false;  // Ground doesn't need collision
     sceneObjects.push_back(ground);
 
     createHouse(glm::vec3(0.0f, 0.0f, -15.0f));
@@ -169,13 +171,34 @@ void HiddenMinigame::initializeScene() {
 }
 
 void HiddenMinigame::createHouse(glm::vec3 position) {
-    SceneObject frontWall;
-    frontWall.position = position + glm::vec3(0.0f, 2.0f, 4.0f);
-    frontWall.size = glm::vec3(10.0f, 4.0f, 0.3f);
-    frontWall.rotation = glm::vec3(0.0f);
-    frontWall.color = glm::vec3(0.6f, 0.5f, 0.4f);
-    frontWall.type = ObjectType::HOUSE_WALL;
-    sceneObjects.push_back(frontWall);
+    // Front wall - split into two parts to leave space for door
+    SceneObject frontWallLeft;
+    frontWallLeft.position = position + glm::vec3(-3.25f, 2.0f, 4.0f);
+    frontWallLeft.size = glm::vec3(3.5f, 4.0f, 0.3f);
+    frontWallLeft.rotation = glm::vec3(0.0f);
+    frontWallLeft.color = glm::vec3(0.6f, 0.5f, 0.4f);
+    frontWallLeft.type = ObjectType::HOUSE_WALL;
+    frontWallLeft.hasCollision = true;
+    sceneObjects.push_back(frontWallLeft);
+
+    SceneObject frontWallRight;
+    frontWallRight.position = position + glm::vec3(3.25f, 2.0f, 4.0f);
+    frontWallRight.size = glm::vec3(3.5f, 4.0f, 0.3f);
+    frontWallRight.rotation = glm::vec3(0.0f);
+    frontWallRight.color = glm::vec3(0.6f, 0.5f, 0.4f);
+    frontWallRight.type = ObjectType::HOUSE_WALL;
+    frontWallRight.hasCollision = true;
+    sceneObjects.push_back(frontWallRight);
+
+    // Top part of front wall above the door
+    SceneObject frontWallTop;
+    frontWallTop.position = position + glm::vec3(0.0f, 3.5f, 4.0f);
+    frontWallTop.size = glm::vec3(3.0f, 1.0f, 0.3f);
+    frontWallTop.rotation = glm::vec3(0.0f);
+    frontWallTop.color = glm::vec3(0.6f, 0.5f, 0.4f);
+    frontWallTop.type = ObjectType::HOUSE_WALL;
+    frontWallTop.hasCollision = true;
+    sceneObjects.push_back(frontWallTop);
 
     SceneObject backWall;
     backWall.position = position + glm::vec3(0.0f, 2.0f, -4.0f);
@@ -183,6 +206,7 @@ void HiddenMinigame::createHouse(glm::vec3 position) {
     backWall.rotation = glm::vec3(0.0f);
     backWall.color = glm::vec3(0.6f, 0.5f, 0.4f);
     backWall.type = ObjectType::HOUSE_WALL;
+    backWall.hasCollision = true;
     sceneObjects.push_back(backWall);
 
     SceneObject leftWall;
@@ -191,6 +215,7 @@ void HiddenMinigame::createHouse(glm::vec3 position) {
     leftWall.rotation = glm::vec3(0.0f);
     leftWall.color = glm::vec3(0.55f, 0.45f, 0.35f);
     leftWall.type = ObjectType::HOUSE_WALL;
+    leftWall.hasCollision = true;
     sceneObjects.push_back(leftWall);
 
     SceneObject rightWall;
@@ -199,6 +224,7 @@ void HiddenMinigame::createHouse(glm::vec3 position) {
     rightWall.rotation = glm::vec3(0.0f);
     rightWall.color = glm::vec3(0.55f, 0.45f, 0.35f);
     rightWall.type = ObjectType::HOUSE_WALL;
+    rightWall.hasCollision = true;
     sceneObjects.push_back(rightWall);
 
     SceneObject roofLeft;
@@ -207,6 +233,7 @@ void HiddenMinigame::createHouse(glm::vec3 position) {
     roofLeft.rotation = glm::vec3(0.0f, 0.0f, 25.0f);
     roofLeft.color = glm::vec3(0.4f, 0.2f, 0.15f);
     roofLeft.type = ObjectType::HOUSE_ROOF;
+    roofLeft.hasCollision = false;  // Roof is too high to collide with
     sceneObjects.push_back(roofLeft);
 
     SceneObject roofRight;
@@ -215,30 +242,35 @@ void HiddenMinigame::createHouse(glm::vec3 position) {
     roofRight.rotation = glm::vec3(0.0f, 0.0f, -25.0f);
     roofRight.color = glm::vec3(0.4f, 0.2f, 0.15f);
     roofRight.type = ObjectType::HOUSE_ROOF;
+    roofRight.hasCollision = false;  // Roof is too high to collide with
     sceneObjects.push_back(roofRight);
 
+    // Door - only visible and has collision when lens is active
     SceneObject door;
-    door.position = position + glm::vec3(0.0f, 1.2f, 4.2f);
-    door.size = glm::vec3(1.5f, 2.4f, 0.1f);
+    door.position = position + glm::vec3(0.0f, 1.5f, 4.15f);
+    door.size = glm::vec3(2.0f, 3.0f, 0.3f);
     door.rotation = glm::vec3(0.0f);
-    door.color = glm::vec3(0.3f, 0.2f, 0.1f);
-    door.type = ObjectType::HOUSE_WALL;
+    door.color = glm::vec3(0.5f, 0.25f, 0.1f);  // Brown door
+    door.type = ObjectType::HOUSE_DOOR;
+    door.hasCollision = true;  // Collision handled specially based on lens state
     sceneObjects.push_back(door);
 
     SceneObject windowLeft;
-    windowLeft.position = position + glm::vec3(-2.5f, 2.5f, 4.2f);
+    windowLeft.position = position + glm::vec3(-3.25f, 2.5f, 4.2f);
     windowLeft.size = glm::vec3(1.2f, 1.0f, 0.1f);
     windowLeft.rotation = glm::vec3(0.0f);
     windowLeft.color = glm::vec3(0.3f, 0.4f, 0.5f);
     windowLeft.type = ObjectType::HOUSE_WALL;
+    windowLeft.hasCollision = false;  // Windows don't need collision (part of wall)
     sceneObjects.push_back(windowLeft);
 
     SceneObject windowRight;
-    windowRight.position = position + glm::vec3(2.5f, 2.5f, 4.2f);
+    windowRight.position = position + glm::vec3(3.25f, 2.5f, 4.2f);
     windowRight.size = glm::vec3(1.2f, 1.0f, 0.1f);
     windowRight.rotation = glm::vec3(0.0f);
     windowRight.color = glm::vec3(0.3f, 0.4f, 0.5f);
     windowRight.type = ObjectType::HOUSE_WALL;
+    windowRight.hasCollision = false;  // Windows don't need collision (part of wall)
     sceneObjects.push_back(windowRight);
 }
 
@@ -249,6 +281,7 @@ void HiddenMinigame::createTree(glm::vec3 position, float scale) {
     trunk.rotation = glm::vec3(0.0f);
     trunk.color = glm::vec3(0.35f, 0.2f, 0.1f);
     trunk.type = ObjectType::TREE_TRUNK;
+    trunk.hasCollision = true;  // Can't walk through tree trunks
     sceneObjects.push_back(trunk);
 
     SceneObject leaves1;
@@ -257,6 +290,7 @@ void HiddenMinigame::createTree(glm::vec3 position, float scale) {
     leaves1.rotation = glm::vec3(0.0f);
     leaves1.color = glm::vec3(0.1f, 0.35f, 0.1f);
     leaves1.type = ObjectType::TREE_LEAVES;
+    leaves1.hasCollision = false;  // Leaves are above player height
     sceneObjects.push_back(leaves1);
 
     SceneObject leaves2;
@@ -265,6 +299,7 @@ void HiddenMinigame::createTree(glm::vec3 position, float scale) {
     leaves2.rotation = glm::vec3(0.0f, 45.0f, 0.0f);
     leaves2.color = glm::vec3(0.15f, 0.4f, 0.12f);
     leaves2.type = ObjectType::TREE_LEAVES;
+    leaves2.hasCollision = false;  // Leaves are above player height
     sceneObjects.push_back(leaves2);
 }
 
@@ -275,6 +310,7 @@ void HiddenMinigame::createRock(glm::vec3 position, float scale) {
     rock.rotation = glm::vec3(0.0f, static_cast<float>(rand() % 360), 0.0f);
     rock.color = glm::vec3(0.4f, 0.4f, 0.42f);
     rock.type = ObjectType::ROCK;
+    rock.hasCollision = true;  // Can't walk through rocks
     sceneObjects.push_back(rock);
 }
 
@@ -295,15 +331,35 @@ void HiddenMinigame::createFence(glm::vec3 start, glm::vec3 end) {
         post.rotation = glm::vec3(0.0f);
         post.color = glm::vec3(0.45f, 0.3f, 0.2f);
         post.type = ObjectType::FENCE;
+        post.hasCollision = true;  // Fence posts have collision
         sceneObjects.push_back(post);
     }
 
+    // Create a collision box for the entire fence rail section
+    SceneObject fenceCollider;
+    fenceCollider.position = midpoint + glm::vec3(0.0f, 0.5f, 0.0f);
+    // Make the fence collision box oriented correctly
+    if (fabs(direction.x) > fabs(direction.z)) {
+        // Horizontal fence (along X axis)
+        fenceCollider.size = glm::vec3(length, 1.0f, 0.3f);
+    } else {
+        // Vertical fence (along Z axis)
+        fenceCollider.size = glm::vec3(0.3f, 1.0f, length);
+    }
+    fenceCollider.rotation = glm::vec3(0.0f);
+    fenceCollider.color = glm::vec3(0.5f, 0.35f, 0.25f);
+    fenceCollider.type = ObjectType::FENCE;
+    fenceCollider.hasCollision = true;
+    sceneObjects.push_back(fenceCollider);
+
+    // Visual rails (no collision, just for looks)
     SceneObject rail1;
     rail1.position = midpoint + glm::vec3(0.0f, 0.3f, 0.0f);
     rail1.size = glm::vec3(0.1f, 0.1f, length);
     rail1.rotation = glm::vec3(0.0f, glm::degrees(angle), 0.0f);
     rail1.color = glm::vec3(0.5f, 0.35f, 0.25f);
     rail1.type = ObjectType::FENCE;
+    rail1.hasCollision = false;  // Visual only
     sceneObjects.push_back(rail1);
 
     SceneObject rail2;
@@ -312,6 +368,7 @@ void HiddenMinigame::createFence(glm::vec3 start, glm::vec3 end) {
     rail2.rotation = glm::vec3(0.0f, glm::degrees(angle), 0.0f);
     rail2.color = glm::vec3(0.5f, 0.35f, 0.25f);
     rail2.type = ObjectType::FENCE;
+    rail2.hasCollision = false;  // Visual only
     sceneObjects.push_back(rail2);
 }
 
@@ -329,6 +386,7 @@ void HiddenMinigame::placeCatRandomly() {
         glm::vec3(26.0f, 0.0f, 2.0f),
         glm::vec3(0.0f, 0.0f, -38.0f),
         glm::vec3(-8.0f, 0.0f, -32.0f),
+        glm::vec3(0.0f, 0.0f, -15.0f),  // Inside the house!
     };
 
     int spotIndex = rand() % hidingSpots.size();
@@ -340,7 +398,6 @@ void HiddenMinigame::placeCatRandomly() {
 
 void HiddenMinigame::update(float deltaTime) {
     if (isGameOver) {
-        // Unlock cursor when game is over
         if (cursorLocked) {
             GLFWwindow* window = glfwGetCurrentContext();
             glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
@@ -363,11 +420,10 @@ void HiddenMinigame::update(float deltaTime) {
             spaceWasPressed = true;
             timeElapsed = 0.0f;
             
-            // Lock cursor when game starts
             GLFWwindow* window = glfwGetCurrentContext();
             glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
             cursorLocked = true;
-            firstMouse = true;  // Reset mouse tracking
+            firstMouse = true;
             
             std::cout << "Game Started! Find the cat!" << std::endl;
         }
@@ -380,7 +436,6 @@ void HiddenMinigame::update(float deltaTime) {
         isGameOver = true;
         playerWon = false;
         
-        // Unlock cursor on game over
         GLFWwindow* window = glfwGetCurrentContext();
         glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
         cursorLocked = false;
@@ -423,10 +478,23 @@ void HiddenMinigame::update(float deltaTime) {
         movement = glm::normalize(movement) * MOVE_SPEED * deltaTime;
         glm::vec3 newPos = playerPos + movement;
         
+        // Clamp to map boundaries
         newPos.x = glm::clamp(newPos.x, -MAP_SIZE + 1.0f, MAP_SIZE - 1.0f);
         newPos.z = glm::clamp(newPos.z, -MAP_SIZE + 1.0f, MAP_SIZE - 1.0f);
         
-        playerPos = newPos;
+        // Check collision - try X and Z separately for sliding along walls
+        glm::vec3 testPosX = glm::vec3(newPos.x, playerPos.y, playerPos.z);
+        glm::vec3 testPosZ = glm::vec3(playerPos.x, playerPos.y, newPos.z);
+        
+        bool canMoveX = !checkCollision(testPosX);
+        bool canMoveZ = !checkCollision(testPosZ);
+        
+        if (canMoveX) {
+            playerPos.x = newPos.x;
+        }
+        if (canMoveZ) {
+            playerPos.z = newPos.z;
+        }
     }
 
     playerPos.y = PLAYER_HEIGHT;
@@ -441,7 +509,6 @@ void HiddenMinigame::update(float deltaTime) {
             isGameOver = true;
             playerWon = true;
             
-            // Unlock cursor on victory
             GLFWwindow* window = glfwGetCurrentContext();
             glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
             cursorLocked = false;
@@ -491,6 +558,10 @@ void HiddenMinigame::render() {
     glUniform1i(glGetUniformLocation(shaderProgram, "useFog"), 1);
 
     for (const auto& obj : sceneObjects) {
+        // Skip rendering the door if lens is not active
+        if (obj.type == ObjectType::HOUSE_DOOR && !lensActive) {
+            continue;
+        }
         renderObject(obj);
     }
 
@@ -548,7 +619,43 @@ void HiddenMinigame::renderHUD() {
 }
 
 bool HiddenMinigame::checkCollision(glm::vec3 newPos) {
+    for (const auto& obj : sceneObjects) {
+        // Skip objects without collision
+        if (!obj.hasCollision) continue;
+        
+        // Special case: door only has collision when lens is active
+        if (obj.type == ObjectType::HOUSE_DOOR && !lensActive) {
+            continue;
+        }
+        
+        if (checkAABBCollision(newPos, PLAYER_RADIUS, obj)) {
+            return true;
+        }
+    }
     return false;
+}
+
+bool HiddenMinigame::checkAABBCollision(glm::vec3 playerPosition, float playerRadius, const SceneObject& obj) {
+    // Get object bounds (AABB)
+    glm::vec3 objMin = obj.position - obj.size * 0.5f;
+    glm::vec3 objMax = obj.position + obj.size * 0.5f;
+    
+    // Expand the AABB by player radius for cylinder-box collision
+    objMin.x -= playerRadius;
+    objMin.z -= playerRadius;
+    objMax.x += playerRadius;
+    objMax.z += playerRadius;
+    
+    // Check if player position is inside the expanded AABB (only X and Z, ignore Y for simplicity)
+    // Also check Y to make sure we're at the right height level
+    float playerFeet = playerPosition.y - PLAYER_HEIGHT;
+    float playerHead = playerPosition.y + 0.3f;  // Small buffer above head
+    
+    bool xOverlap = playerPosition.x >= objMin.x && playerPosition.x <= objMax.x;
+    bool zOverlap = playerPosition.z >= objMin.z && playerPosition.z <= objMax.z;
+    bool yOverlap = playerHead >= objMin.y && playerFeet <= objMax.y;
+    
+    return xOverlap && zOverlap && yOverlap;
 }
 
 bool HiddenMinigame::checkWinCondition() {
