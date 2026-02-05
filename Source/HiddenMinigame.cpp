@@ -615,7 +615,84 @@ void HiddenMinigame::renderCat() {
 }
 
 void HiddenMinigame::renderHUD() {
-    // HUD rendering would go here (timer display, etc.)
+    // Don't render HUD while waiting to start
+    if (waitingToStart) return;
+    
+    // Calculate remaining time
+    float timeRemaining = timeLimit - timeElapsed;
+    if (timeRemaining < 0.0f) timeRemaining = 0.0f;
+
+    // Disable depth test for HUD
+    glDisable(GL_DEPTH_TEST);
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+    glUseProgram(shaderProgram);
+
+    // Timer bar settings
+    float barWidth = 0.8f;
+    float barHeight = 0.05f;
+    float barY = 0.9f;
+    
+    // Set orthographic projection for HUD
+    glm::mat4 orthoProj = glm::ortho(-1.0f, 1.0f, -1.0f, 1.0f, -1.0f, 1.0f);
+    glm::mat4 identityView = glm::mat4(1.0f);
+    
+    glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "projection"), 1, GL_FALSE, glm::value_ptr(orthoProj));
+    glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "view"), 1, GL_FALSE, glm::value_ptr(identityView));
+    glUniform1i(glGetUniformLocation(shaderProgram, "useFog"), 0);  // Disable fog for HUD
+    
+    // Background bar (dark)
+    glm::mat4 bgBar = glm::mat4(1.0f);
+    bgBar = glm::translate(bgBar, glm::vec3(0.0f, barY, 0.0f));
+    bgBar = glm::scale(bgBar, glm::vec3(barWidth, barHeight, 0.1f));
+    renderCube(bgBar, glm::vec3(0.2f, 0.2f, 0.2f));
+    
+    // Progress bar (shows time remaining)
+    float progress = timeRemaining / timeLimit;
+    glm::mat4 progressBar = glm::mat4(1.0f);
+    float progressWidth = barWidth * progress;
+    float offsetX = -(barWidth - progressWidth) / 2.0f;
+    progressBar = glm::translate(progressBar, glm::vec3(offsetX, barY, 0.1f));
+    progressBar = glm::scale(progressBar, glm::vec3(progressWidth, barHeight * 0.8f, 0.1f));
+    
+    // Color changes as time runs out (green -> yellow -> red)
+    glm::vec3 timerColor;
+    if (progress > 0.5f) {
+        timerColor = glm::vec3(0.2f, 0.8f, 0.2f);  // Green
+    } else if (progress > 0.25f) {
+        timerColor = glm::vec3(0.9f, 0.7f, 0.1f);  // Yellow
+    } else {
+        timerColor = glm::vec3(0.9f, 0.2f, 0.2f);  // Red
+    }
+    renderCube(progressBar, timerColor);
+    
+    // Render seconds remaining as blocks (each block = 5 seconds, 18 blocks for 90 seconds)
+    int secondsRemaining = static_cast<int>(timeRemaining);
+    int numBlocks = 18;  // 90 seconds / 5 seconds per block
+    float blockStartX = -0.85f;
+    float blockSpacing = 0.095f;
+    
+    for (int i = 0; i < numBlocks; i++) {
+        glm::mat4 blockModel = glm::mat4(1.0f);
+        blockModel = glm::translate(blockModel, glm::vec3(blockStartX + i * blockSpacing, barY - 0.1f, 0.0f));
+        blockModel = glm::scale(blockModel, glm::vec3(0.07f, 0.04f, 0.1f));
+        
+        bool blockActive = (secondsRemaining > i * 5);
+        glm::vec3 blockColor = blockActive ? timerColor : glm::vec3(0.15f, 0.15f, 0.15f);
+        renderCube(blockModel, blockColor);
+    }
+    
+    // Lens indicator (show if lens is active)
+    if (lensActive) {
+        glm::mat4 lensIndicator = glm::mat4(1.0f);
+        lensIndicator = glm::translate(lensIndicator, glm::vec3(0.0f, -0.85f, 0.0f));
+        lensIndicator = glm::scale(lensIndicator, glm::vec3(0.15f, 0.05f, 0.1f));
+        renderCube(lensIndicator, glm::vec3(0.2f, 0.8f, 1.0f));  // Cyan color for lens active
+    }
+
+    // Re-enable depth test
+    glEnable(GL_DEPTH_TEST);
 }
 
 bool HiddenMinigame::checkCollision(glm::vec3 newPos) {
