@@ -65,11 +65,21 @@ private:
 	float survivalTimer;
 	bool isGameOver, playerWon;
 
+	// HUD resources
+	unsigned int hudShaderProgram;
+	unsigned int hudVAO, hudVBO;
+	unsigned int fontTexture;
+
 	// Helper functions
 	void spawnObstacle();
 	void resetGame();
 	void renderCube(glm::mat4 model, glm::vec3 color);
+	void initializeHUD();
+	void renderTimerHUD();
+	void renderObstacle(const Obstacle& obs);
 
+	// Models
 	Model playerModel;
+	Model obstacleModel;
 
 };

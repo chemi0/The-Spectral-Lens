@@ -42,6 +42,9 @@
     <ClCompile Include="Source\PlatformerMinigame.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Source\HiddenMinigame.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Header\stb_image.h">
@@ -78,6 +81,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Header\PlatformerMinigame.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Header\HiddenMinigame.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
