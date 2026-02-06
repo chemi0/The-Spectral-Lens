@@ -95,6 +95,9 @@
     <None Include="convert_fbx.py" />
     <None Include="Resources\HidingGameHouse\Low_poly_house.mtl" />
     <None Include="Resources\HidingGameTree2\tree2.mtl" />
+    <None Include="Resources\TiramisuPlatform\Tiramisu_LOD_0.mtl" />
+    <None Include="Resources\WinterTreesStartingPlatform\Winter_trees.mtl" />
+    <None Include="Resources\ScifiPlatform\LI Hover Platform LP.mtl" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="..\..\..\..\Gamedev-Resources\Winter-Forest-Backgrounds\PNG\BG_04\Layers\Moon.png">

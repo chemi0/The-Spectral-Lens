@@ -9,7 +9,9 @@
 enum class PlatformType {
     SOLID,      // Regular platform
     MOVING,     // Platform that moves back and forth
-    GOAL        // Goal item/platform
+    GOAL,       // Goal item/platform
+    START,      // Starting platform (uses WinterTrees model)
+    FINAL       // Final platform (uses SciFi model)
 };
 
 // Platform structure
@@ -71,6 +73,11 @@ private:
     unsigned int VAO, VBO;  // For platform cubes
     Camera camera;
     Model playerModel;
+
+    // Platform models
+    Model startPlatformModel;   // WinterTrees - starting platform
+    Model movingPlatformModel;  // Tiramisu - moving platforms
+    Model goalPlatformModel;    // SciFi - final platform
 
     // HUD for "Press Space to Start" indicator
     unsigned int hudShaderProgram;
