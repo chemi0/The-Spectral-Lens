@@ -92,6 +92,9 @@
     <None Include="Shaders\scene.vert" />
     <None Include="Shaders\scene.frag" />
     <None Include="glsl Shaders\scene.frag" />
+    <None Include="convert_fbx.py" />
+    <None Include="Resources\HidingGameHouse\Low_poly_house.mtl" />
+    <None Include="Resources\HidingGameTree2\tree2.mtl" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="..\..\..\..\Gamedev-Resources\Winter-Forest-Backgrounds\PNG\BG_04\Layers\Moon.png">

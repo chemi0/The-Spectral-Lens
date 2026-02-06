@@ -17,7 +17,9 @@ HiddenMinigame::HiddenMinigame(int width, int height)
     lensActive(false),
     camera(glm::vec3(0.0f, 1.7f, 0.0f)),
     catFindRadius(2.5f), catFound(false),
-    cursorLocked(false)
+    cursorLocked(false),
+    houseScale(0.2f),
+    housePosition(0.0f, 0.0f, -15.0f)
 {
     srand(static_cast<unsigned int>(time(nullptr)));
 
@@ -80,10 +82,10 @@ HiddenMinigame::HiddenMinigame(int width, int height)
     glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(5 * sizeof(float)));
     glEnableVertexAttribArray(2);
 
+    // Load cat model
     if (!catModel.loadModel("Resources/RunnerCharacter/cat_with_lights.obj")) {
         std::cerr << "Failed to load cat model for HiddenMinigame!" << std::endl;
     }
-
     catModel.diffuseTex = catModel.loadTexture("Resources/RunnerCharacter/cat_diffuse.png");
     catModel.emissionTex = catModel.loadTexture("Resources/RunnerCharacter/cat_Emissive.png");
     catModel.roughnessTex = catModel.loadTexture("Resources/RunnerCharacter/cat_Roughness.png");
@@ -91,13 +93,28 @@ HiddenMinigame::HiddenMinigame(int width, int height)
     catModel.opacityTex = catModel.loadTexture("Resources/RunnerCharacter/cat_Opacity.png");
     catModel.normalMapTex = catModel.loadTexture("Resources/RunnerCharacter/cat_Normal.png");
 
+    // Load house model
+    if (!houseModel.loadModel("Resources/HidingGameHouse/Low_poly_house.obj")) {
+        std::cerr << "Failed to load house model for HiddenMinigame!" << std::endl;
+    }
+    houseModel.diffuseTex = houseModel.loadTexture("Resources/HidingGameHouse/Low_poly_house.jpg");
+    houseModel.emissionTex = houseModel.loadTexture("Resources/HidingGameHouse/Low_poly_house_emis.jpg");
+
+    // Load tree model
+    if (!treeModel.loadModel("Resources/HidingGameTree2/tree2.obj")) {
+        std::cerr << "Failed to load tree model for HiddenMinigame!" << std::endl;
+    }
+    treeModel.diffuseTex = treeModel.loadTexture("Resources/HidingGameTree2/tree2Color.png");
+    treeModel.normalMapTex = treeModel.loadTexture("Resources/HidingGameTree2/tree2Normal.png");
+    treeModel.roughnessTex = treeModel.loadTexture("Resources/HidingGameTree2/tree2Roughness.png");
+
     initializeScene();
 
     std::cout << "Hidden Minigame Initialized!" << std::endl;
     std::cout << "Press SPACE to start!" << std::endl;
     std::cout << "Controls: WASD = Move, Mouse = Look, Hold E = Use Lens/Flashlight" << std::endl;
     std::cout << "Find the hidden cat before time runs out!" << std::endl;
-    std::cout << "Hint: The door only appears when using the lens..." << std::endl;
+    std::cout << "Use your lens to reveal what's hidden in the darkness..." << std::endl;
 }
 
 HiddenMinigame::~HiddenMinigame() {
@@ -108,285 +125,141 @@ HiddenMinigame::~HiddenMinigame() {
 
 void HiddenMinigame::initializeScene() {
     sceneObjects.clear();
+    trees.clear();
 
+    // House placement (raised above ground to avoid z-fighting)
+    housePosition = glm::vec3(0.0f, 0.02f, -15.0f);
+    houseScale = 0.2f;
+
+    // House collision box (adjusted for 0.2 scale, slightly larger to prevent wall clipping)
+    SceneObject houseCollision;
+    houseCollision.position = glm::vec3(0.0f, 3.0f, -15.0f);
+    houseCollision.size = glm::vec3(12.0f, 6.0f, 10.0f);  // Slightly larger than visual model
+    houseCollision.rotation = glm::vec3(0.0f);
+    houseCollision.type = ObjectType::HOUSE_WALL;
+    houseCollision.hasCollision = true;
+    sceneObjects.push_back(houseCollision);
+
+    // Ground (visual, no collision needed)
     SceneObject ground;
     ground.position = glm::vec3(0.0f, -0.25f, 0.0f);
     ground.size = glm::vec3(MAP_SIZE * 2, 0.5f, MAP_SIZE * 2);
     ground.rotation = glm::vec3(0.0f);
-    ground.color = glm::vec3(0.15f, 0.25f, 0.1f);
+    ground.color = glm::vec3(0.12f, 0.22f, 0.08f);
     ground.type = ObjectType::GROUND;
-    ground.hasCollision = false;  // Ground doesn't need collision
+    ground.hasCollision = false;
     sceneObjects.push_back(ground);
 
-    createHouse(glm::vec3(0.0f, 0.0f, -15.0f));
+    // --- Tree placement ---
+    // Left forest cluster
+    trees.push_back({ glm::vec3(-20.0f, 0.0f, -10.0f), 0.08f, static_cast<float>(rand() % 360) });
+    trees.push_back({ glm::vec3(-25.0f, 0.0f,  -5.0f), 0.06f, static_cast<float>(rand() % 360) });
+    trees.push_back({ glm::vec3(-22.0f, 0.0f,   0.0f), 0.07f, static_cast<float>(rand() % 360) });
+    trees.push_back({ glm::vec3(-18.0f, 0.0f,   5.0f), 0.075f, static_cast<float>(rand() % 360) });
+    trees.push_back({ glm::vec3(-24.0f, 0.0f, -18.0f), 0.09f, static_cast<float>(rand() % 360) });
+    trees.push_back({ glm::vec3(-28.0f, 0.0f, -12.0f), 0.055f, static_cast<float>(rand() % 360) });
+    trees.push_back({ glm::vec3(-15.0f, 0.0f, -20.0f), 0.07f, static_cast<float>(rand() % 360) });
 
-    createTree(glm::vec3(-20.0f, 0.0f, -10.0f), 1.2f);
-    createTree(glm::vec3(-25.0f, 0.0f, -5.0f), 0.9f);
-    createTree(glm::vec3(-22.0f, 0.0f, 0.0f), 1.0f);
-    createTree(glm::vec3(-18.0f, 0.0f, 5.0f), 1.1f);
-    createTree(glm::vec3(-24.0f, 0.0f, -18.0f), 1.3f);
-    createTree(glm::vec3(-28.0f, 0.0f, -12.0f), 0.8f);
-    createTree(glm::vec3(-15.0f, 0.0f, -20.0f), 1.0f);
+    // Right forest cluster
+    trees.push_back({ glm::vec3( 20.0f, 0.0f,  -8.0f), 0.075f, static_cast<float>(rand() % 360) });
+    trees.push_back({ glm::vec3( 25.0f, 0.0f, -15.0f), 0.07f, static_cast<float>(rand() % 360) });
+    trees.push_back({ glm::vec3( 22.0f, 0.0f, -22.0f), 0.065f, static_cast<float>(rand() % 360) });
+    trees.push_back({ glm::vec3( 18.0f, 0.0f,   8.0f), 0.08f, static_cast<float>(rand() % 360) });
+    trees.push_back({ glm::vec3( 28.0f, 0.0f,   0.0f), 0.07f, static_cast<float>(rand() % 360) });
+    trees.push_back({ glm::vec3( 15.0f, 0.0f, -25.0f), 0.075f, static_cast<float>(rand() % 360) });
 
-    createTree(glm::vec3(20.0f, 0.0f, -8.0f), 1.1f);
-    createTree(glm::vec3(25.0f, 0.0f, -15.0f), 1.0f);
-    createTree(glm::vec3(22.0f, 0.0f, -22.0f), 0.9f);
-    createTree(glm::vec3(18.0f, 0.0f, 8.0f), 1.2f);
-    createTree(glm::vec3(28.0f, 0.0f, 0.0f), 1.0f);
-    createTree(glm::vec3(15.0f, 0.0f, -25.0f), 1.1f);
+    // Behind the house
+    trees.push_back({ glm::vec3( -8.0f, 0.0f, -30.0f), 0.07f, static_cast<float>(rand() % 360) });
+    trees.push_back({ glm::vec3(  0.0f, 0.0f, -35.0f), 0.08f, static_cast<float>(rand() % 360) });
+    trees.push_back({ glm::vec3( 10.0f, 0.0f, -32.0f), 0.065f, static_cast<float>(rand() % 360) });
+    trees.push_back({ glm::vec3( -5.0f, 0.0f, -40.0f), 0.075f, static_cast<float>(rand() % 360) });
+    trees.push_back({ glm::vec3(  8.0f, 0.0f, -38.0f), 0.07f, static_cast<float>(rand() % 360) });
 
-    createTree(glm::vec3(-8.0f, 0.0f, -30.0f), 1.0f);
-    createTree(glm::vec3(0.0f, 0.0f, -35.0f), 1.2f);
-    createTree(glm::vec3(10.0f, 0.0f, -32.0f), 0.9f);
-    createTree(glm::vec3(-5.0f, 0.0f, -40.0f), 1.1f);
-    createTree(glm::vec3(8.0f, 0.0f, -38.0f), 1.0f);
+    // In front / scattered (away from spawn point at z=25)
+    trees.push_back({ glm::vec3(-12.0f, 0.0f,  12.0f), 0.07f, static_cast<float>(rand() % 360) });
+    trees.push_back({ glm::vec3( 14.0f, 0.0f,  10.0f), 0.055f, static_cast<float>(rand() % 360) });
+    trees.push_back({ glm::vec3( -8.0f, 0.0f,  28.0f), 0.075f, static_cast<float>(rand() % 360) });
 
-    createTree(glm::vec3(-12.0f, 0.0f, 15.0f), 1.0f);
-    createTree(glm::vec3(14.0f, 0.0f, 18.0f), 0.8f);
-    createTree(glm::vec3(5.0f, 0.0f, 25.0f), 1.1f);
+    // Collision boxes for tree trunks (larger to prevent walking through)
+    for (const auto& tree : trees) {
+        SceneObject trunkCollision;
+        trunkCollision.position = tree.position + glm::vec3(0.0f, 2.5f, 0.0f);
+        trunkCollision.size = glm::vec3(2.4f, 5.0f, 2.4f);  // Larger trunk collision
+        trunkCollision.rotation = glm::vec3(0.0f);
+        trunkCollision.type = ObjectType::TREE_TRUNK;
+        trunkCollision.hasCollision = true;
+        sceneObjects.push_back(trunkCollision);
+    }
 
-    createRock(glm::vec3(-10.0f, 0.0f, -5.0f), 1.5f);
-    createRock(glm::vec3(12.0f, 0.0f, -3.0f), 1.0f);
-    createRock(glm::vec3(-5.0f, 0.0f, 10.0f), 0.8f);
-    createRock(glm::vec3(8.0f, 0.0f, -20.0f), 1.2f);
-    createRock(glm::vec3(-18.0f, 0.0f, -25.0f), 1.0f);
-    createRock(glm::vec3(22.0f, 0.0f, 5.0f), 0.9f);
-    createRock(glm::vec3(-8.0f, 0.0f, -35.0f), 1.3f);
-    createRock(glm::vec3(15.0f, 0.0f, -30.0f), 1.1f);
+    // Fence collision boxes (invisible, just to bound the play area)
+    // Left fence
+    SceneObject fenceLeft;
+    fenceLeft.position = glm::vec3(-15.0f, 0.5f, -10.0f);
+    fenceLeft.size = glm::vec3(0.3f, 1.0f, 30.0f);
+    fenceLeft.rotation = glm::vec3(0.0f);
+    fenceLeft.type = ObjectType::FENCE;
+    fenceLeft.hasCollision = true;
+    sceneObjects.push_back(fenceLeft);
 
-    createRock(glm::vec3(-3.0f, 0.0f, 5.0f), 0.5f);
-    createRock(glm::vec3(-2.0f, 0.0f, 6.0f), 0.4f);
-    createRock(glm::vec3(7.0f, 0.0f, 12.0f), 0.6f);
-    createRock(glm::vec3(8.5f, 0.0f, 11.0f), 0.5f);
+    // Right fence
+    SceneObject fenceRight;
+    fenceRight.position = glm::vec3(15.0f, 0.5f, -10.0f);
+    fenceRight.size = glm::vec3(0.3f, 1.0f, 30.0f);
+    fenceRight.rotation = glm::vec3(0.0f);
+    fenceRight.type = ObjectType::FENCE;
+    fenceRight.hasCollision = true;
+    sceneObjects.push_back(fenceRight);
 
-    createFence(glm::vec3(-15.0f, 0.0f, 5.0f), glm::vec3(-3.0f, 0.0f, 5.0f));
-    createFence(glm::vec3(3.0f, 0.0f, 5.0f), glm::vec3(15.0f, 0.0f, 5.0f));
-    createFence(glm::vec3(-15.0f, 0.0f, 5.0f), glm::vec3(-15.0f, 0.0f, -25.0f));
-    createFence(glm::vec3(15.0f, 0.0f, 5.0f), glm::vec3(15.0f, 0.0f, -25.0f));
-    createFence(glm::vec3(-15.0f, 0.0f, -25.0f), glm::vec3(15.0f, 0.0f, -25.0f));
+    // Back fence
+    SceneObject fenceBack;
+    fenceBack.position = glm::vec3(0.0f, 0.5f, -25.0f);
+    fenceBack.size = glm::vec3(30.0f, 1.0f, 0.3f);
+    fenceBack.rotation = glm::vec3(0.0f);
+    fenceBack.type = ObjectType::FENCE;
+    fenceBack.hasCollision = true;
+    sceneObjects.push_back(fenceBack);
+
+    // Front fence (two parts with gap for entrance)
+    SceneObject fenceFrontLeft;
+    fenceFrontLeft.position = glm::vec3(-9.0f, 0.5f, 5.0f);
+    fenceFrontLeft.size = glm::vec3(12.0f, 1.0f, 0.3f);
+    fenceFrontLeft.rotation = glm::vec3(0.0f);
+    fenceFrontLeft.type = ObjectType::FENCE;
+    fenceFrontLeft.hasCollision = true;
+    sceneObjects.push_back(fenceFrontLeft);
+
+    SceneObject fenceFrontRight;
+    fenceFrontRight.position = glm::vec3(9.0f, 0.5f, 5.0f);
+    fenceFrontRight.size = glm::vec3(12.0f, 1.0f, 0.3f);
+    fenceFrontRight.rotation = glm::vec3(0.0f);
+    fenceFrontRight.type = ObjectType::FENCE;
+    fenceFrontRight.hasCollision = true;
+    sceneObjects.push_back(fenceFrontRight);
 
     placeCatRandomly();
 
-    playerPos = glm::vec3(0.0f, PLAYER_HEIGHT, 20.0f);
-}
-
-void HiddenMinigame::createHouse(glm::vec3 position) {
-    // Front wall - split into two parts to leave space for door
-    SceneObject frontWallLeft;
-    frontWallLeft.position = position + glm::vec3(-3.25f, 2.0f, 4.0f);
-    frontWallLeft.size = glm::vec3(3.5f, 4.0f, 0.3f);
-    frontWallLeft.rotation = glm::vec3(0.0f);
-    frontWallLeft.color = glm::vec3(0.6f, 0.5f, 0.4f);
-    frontWallLeft.type = ObjectType::HOUSE_WALL;
-    frontWallLeft.hasCollision = true;
-    sceneObjects.push_back(frontWallLeft);
-
-    SceneObject frontWallRight;
-    frontWallRight.position = position + glm::vec3(3.25f, 2.0f, 4.0f);
-    frontWallRight.size = glm::vec3(3.5f, 4.0f, 0.3f);
-    frontWallRight.rotation = glm::vec3(0.0f);
-    frontWallRight.color = glm::vec3(0.6f, 0.5f, 0.4f);
-    frontWallRight.type = ObjectType::HOUSE_WALL;
-    frontWallRight.hasCollision = true;
-    sceneObjects.push_back(frontWallRight);
-
-    // Top part of front wall above the door
-    SceneObject frontWallTop;
-    frontWallTop.position = position + glm::vec3(0.0f, 3.5f, 4.0f);
-    frontWallTop.size = glm::vec3(3.0f, 1.0f, 0.3f);
-    frontWallTop.rotation = glm::vec3(0.0f);
-    frontWallTop.color = glm::vec3(0.6f, 0.5f, 0.4f);
-    frontWallTop.type = ObjectType::HOUSE_WALL;
-    frontWallTop.hasCollision = true;
-    sceneObjects.push_back(frontWallTop);
-
-    SceneObject backWall;
-    backWall.position = position + glm::vec3(0.0f, 2.0f, -4.0f);
-    backWall.size = glm::vec3(10.0f, 4.0f, 0.3f);
-    backWall.rotation = glm::vec3(0.0f);
-    backWall.color = glm::vec3(0.6f, 0.5f, 0.4f);
-    backWall.type = ObjectType::HOUSE_WALL;
-    backWall.hasCollision = true;
-    sceneObjects.push_back(backWall);
-
-    SceneObject leftWall;
-    leftWall.position = position + glm::vec3(-5.0f, 2.0f, 0.0f);
-    leftWall.size = glm::vec3(0.3f, 4.0f, 8.0f);
-    leftWall.rotation = glm::vec3(0.0f);
-    leftWall.color = glm::vec3(0.55f, 0.45f, 0.35f);
-    leftWall.type = ObjectType::HOUSE_WALL;
-    leftWall.hasCollision = true;
-    sceneObjects.push_back(leftWall);
-
-    SceneObject rightWall;
-    rightWall.position = position + glm::vec3(5.0f, 2.0f, 0.0f);
-    rightWall.size = glm::vec3(0.3f, 4.0f, 8.0f);
-    rightWall.rotation = glm::vec3(0.0f);
-    rightWall.color = glm::vec3(0.55f, 0.45f, 0.35f);
-    rightWall.type = ObjectType::HOUSE_WALL;
-    rightWall.hasCollision = true;
-    sceneObjects.push_back(rightWall);
-
-    SceneObject roofLeft;
-    roofLeft.position = position + glm::vec3(-2.5f, 5.0f, 0.0f);
-    roofLeft.size = glm::vec3(6.0f, 0.3f, 9.0f);
-    roofLeft.rotation = glm::vec3(0.0f, 0.0f, 25.0f);
-    roofLeft.color = glm::vec3(0.4f, 0.2f, 0.15f);
-    roofLeft.type = ObjectType::HOUSE_ROOF;
-    roofLeft.hasCollision = false;  // Roof is too high to collide with
-    sceneObjects.push_back(roofLeft);
-
-    SceneObject roofRight;
-    roofRight.position = position + glm::vec3(2.5f, 5.0f, 0.0f);
-    roofRight.size = glm::vec3(6.0f, 0.3f, 9.0f);
-    roofRight.rotation = glm::vec3(0.0f, 0.0f, -25.0f);
-    roofRight.color = glm::vec3(0.4f, 0.2f, 0.15f);
-    roofRight.type = ObjectType::HOUSE_ROOF;
-    roofRight.hasCollision = false;  // Roof is too high to collide with
-    sceneObjects.push_back(roofRight);
-
-    // Door - only visible and has collision when lens is active
-    SceneObject door;
-    door.position = position + glm::vec3(0.0f, 1.5f, 4.15f);
-    door.size = glm::vec3(2.0f, 3.0f, 0.3f);
-    door.rotation = glm::vec3(0.0f);
-    door.color = glm::vec3(0.5f, 0.25f, 0.1f);  // Brown door
-    door.type = ObjectType::HOUSE_DOOR;
-    door.hasCollision = true;  // Collision handled specially based on lens state
-    sceneObjects.push_back(door);
-
-    SceneObject windowLeft;
-    windowLeft.position = position + glm::vec3(-3.25f, 2.5f, 4.2f);
-    windowLeft.size = glm::vec3(1.2f, 1.0f, 0.1f);
-    windowLeft.rotation = glm::vec3(0.0f);
-    windowLeft.color = glm::vec3(0.3f, 0.4f, 0.5f);
-    windowLeft.type = ObjectType::HOUSE_WALL;
-    windowLeft.hasCollision = false;  // Windows don't need collision (part of wall)
-    sceneObjects.push_back(windowLeft);
-
-    SceneObject windowRight;
-    windowRight.position = position + glm::vec3(3.25f, 2.5f, 4.2f);
-    windowRight.size = glm::vec3(1.2f, 1.0f, 0.1f);
-    windowRight.rotation = glm::vec3(0.0f);
-    windowRight.color = glm::vec3(0.3f, 0.4f, 0.5f);
-    windowRight.type = ObjectType::HOUSE_WALL;
-    windowRight.hasCollision = false;  // Windows don't need collision (part of wall)
-    sceneObjects.push_back(windowRight);
-}
-
-void HiddenMinigame::createTree(glm::vec3 position, float scale) {
-    SceneObject trunk;
-    trunk.position = position + glm::vec3(0.0f, 1.5f * scale, 0.0f);
-    trunk.size = glm::vec3(0.5f * scale, 3.0f * scale, 0.5f * scale);
-    trunk.rotation = glm::vec3(0.0f);
-    trunk.color = glm::vec3(0.35f, 0.2f, 0.1f);
-    trunk.type = ObjectType::TREE_TRUNK;
-    trunk.hasCollision = true;  // Can't walk through tree trunks
-    sceneObjects.push_back(trunk);
-
-    SceneObject leaves1;
-    leaves1.position = position + glm::vec3(0.0f, 4.0f * scale, 0.0f);
-    leaves1.size = glm::vec3(3.0f * scale, 2.5f * scale, 3.0f * scale);
-    leaves1.rotation = glm::vec3(0.0f);
-    leaves1.color = glm::vec3(0.1f, 0.35f, 0.1f);
-    leaves1.type = ObjectType::TREE_LEAVES;
-    leaves1.hasCollision = false;  // Leaves are above player height
-    sceneObjects.push_back(leaves1);
-
-    SceneObject leaves2;
-    leaves2.position = position + glm::vec3(0.0f, 5.5f * scale, 0.0f);
-    leaves2.size = glm::vec3(2.0f * scale, 2.0f * scale, 2.0f * scale);
-    leaves2.rotation = glm::vec3(0.0f, 45.0f, 0.0f);
-    leaves2.color = glm::vec3(0.15f, 0.4f, 0.12f);
-    leaves2.type = ObjectType::TREE_LEAVES;
-    leaves2.hasCollision = false;  // Leaves are above player height
-    sceneObjects.push_back(leaves2);
-}
-
-void HiddenMinigame::createRock(glm::vec3 position, float scale) {
-    SceneObject rock;
-    rock.position = position + glm::vec3(0.0f, 0.3f * scale, 0.0f);
-    rock.size = glm::vec3(1.0f * scale, 0.6f * scale, 0.8f * scale);
-    rock.rotation = glm::vec3(0.0f, static_cast<float>(rand() % 360), 0.0f);
-    rock.color = glm::vec3(0.4f, 0.4f, 0.42f);
-    rock.type = ObjectType::ROCK;
-    rock.hasCollision = true;  // Can't walk through rocks
-    sceneObjects.push_back(rock);
-}
-
-void HiddenMinigame::createFence(glm::vec3 start, glm::vec3 end) {
-    glm::vec3 direction = end - start;
-    float length = glm::length(direction);
-    glm::vec3 midpoint = (start + end) * 0.5f;
-    float angle = atan2(direction.x, direction.z);
-
-    int numPosts = static_cast<int>(length / 2.0f) + 1;
-    for (int i = 0; i < numPosts; i++) {
-        float t = static_cast<float>(i) / static_cast<float>(numPosts - 1);
-        glm::vec3 postPos = start + direction * t;
-        
-        SceneObject post;
-        post.position = postPos + glm::vec3(0.0f, 0.5f, 0.0f);
-        post.size = glm::vec3(0.15f, 1.0f, 0.15f);
-        post.rotation = glm::vec3(0.0f);
-        post.color = glm::vec3(0.45f, 0.3f, 0.2f);
-        post.type = ObjectType::FENCE;
-        post.hasCollision = true;  // Fence posts have collision
-        sceneObjects.push_back(post);
-    }
-
-    // Create a collision box for the entire fence rail section
-    SceneObject fenceCollider;
-    fenceCollider.position = midpoint + glm::vec3(0.0f, 0.5f, 0.0f);
-    // Make the fence collision box oriented correctly
-    if (fabs(direction.x) > fabs(direction.z)) {
-        // Horizontal fence (along X axis)
-        fenceCollider.size = glm::vec3(length, 1.0f, 0.3f);
-    } else {
-        // Vertical fence (along Z axis)
-        fenceCollider.size = glm::vec3(0.3f, 1.0f, length);
-    }
-    fenceCollider.rotation = glm::vec3(0.0f);
-    fenceCollider.color = glm::vec3(0.5f, 0.35f, 0.25f);
-    fenceCollider.type = ObjectType::FENCE;
-    fenceCollider.hasCollision = true;
-    sceneObjects.push_back(fenceCollider);
-
-    // Visual rails (no collision, just for looks)
-    SceneObject rail1;
-    rail1.position = midpoint + glm::vec3(0.0f, 0.3f, 0.0f);
-    rail1.size = glm::vec3(0.1f, 0.1f, length);
-    rail1.rotation = glm::vec3(0.0f, glm::degrees(angle), 0.0f);
-    rail1.color = glm::vec3(0.5f, 0.35f, 0.25f);
-    rail1.type = ObjectType::FENCE;
-    rail1.hasCollision = false;  // Visual only
-    sceneObjects.push_back(rail1);
-
-    SceneObject rail2;
-    rail2.position = midpoint + glm::vec3(0.0f, 0.7f, 0.0f);
-    rail2.size = glm::vec3(0.1f, 0.1f, length);
-    rail2.rotation = glm::vec3(0.0f, glm::degrees(angle), 0.0f);
-    rail2.color = glm::vec3(0.5f, 0.35f, 0.25f);
-    rail2.type = ObjectType::FENCE;
-    rail2.hasCollision = false;  // Visual only
-    sceneObjects.push_back(rail2);
+    // Spawn player further in front, away from trees
+    playerPos = glm::vec3(0.0f, PLAYER_HEIGHT, 27.0f);
 }
 
 void HiddenMinigame::placeCatRandomly() {
+    // All hiding spots around the house at (0, 0, -15)
     std::vector<glm::vec3> hidingSpots = {
-        glm::vec3(-22.0f, 0.0f, -3.0f),
-        glm::vec3(23.0f, 0.0f, -10.0f),
-        glm::vec3(-5.0f, 0.0f, -19.0f),
-        glm::vec3(8.0f, 0.0f, -19.0f),
-        glm::vec3(-14.0f, 0.0f, -5.0f),
-        glm::vec3(14.0f, 0.0f, -20.0f),
-        glm::vec3(-10.0f, 0.0f, -6.0f),
-        glm::vec3(12.0f, 0.0f, -4.0f),
-        glm::vec3(-25.0f, 0.0f, -15.0f),
-        glm::vec3(26.0f, 0.0f, 2.0f),
-        glm::vec3(0.0f, 0.0f, -38.0f),
-        glm::vec3(-8.0f, 0.0f, -32.0f),
-        glm::vec3(0.0f, 0.0f, -15.0f),  // Inside the house!
+        // Left side of house
+        glm::vec3(-10.0f, 0.0f, -15.0f),
+        glm::vec3(-12.0f, 0.0f, -12.0f),
+        glm::vec3(-11.0f, 0.0f, -18.0f),
+        // Right side of house
+        glm::vec3(10.0f, 0.0f, -15.0f),
+        glm::vec3(12.0f, 0.0f, -13.0f),
+        glm::vec3(11.0f, 0.0f, -17.0f),
+        // Behind house
+        glm::vec3(0.0f, 0.0f, -23.0f),
+        glm::vec3(-6.0f, 0.0f, -22.0f),
+        glm::vec3(6.0f, 0.0f, -22.0f),
+        // In front of house (sides)
+        glm::vec3(-8.0f, 0.0f, -8.0f),
+        glm::vec3(8.0f, 0.0f, -8.0f),
     };
 
     int spotIndex = rand() % hidingSpots.size();
@@ -411,7 +284,7 @@ void HiddenMinigame::update(float deltaTime) {
 
     if (waitingToStart) {
         timeElapsed += deltaTime;
-        
+
         if (!spaceIsPressed) {
             spaceWasPressed = false;
         }
@@ -419,12 +292,12 @@ void HiddenMinigame::update(float deltaTime) {
             waitingToStart = false;
             spaceWasPressed = true;
             timeElapsed = 0.0f;
-            
+
             GLFWwindow* window = glfwGetCurrentContext();
             glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
             cursorLocked = true;
             firstMouse = true;
-            
+
             std::cout << "Game Started! Find the cat!" << std::endl;
         }
         return;
@@ -435,11 +308,11 @@ void HiddenMinigame::update(float deltaTime) {
     if (timeElapsed >= timeLimit) {
         isGameOver = true;
         playerWon = false;
-        
+
         GLFWwindow* window = glfwGetCurrentContext();
         glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
         cursorLocked = false;
-        
+
         std::cout << "TIME'S UP! You failed to find the cat." << std::endl;
         return;
     }
@@ -477,22 +350,17 @@ void HiddenMinigame::update(float deltaTime) {
     if (glm::length(movement) > 0.0f) {
         movement = glm::normalize(movement) * MOVE_SPEED * deltaTime;
         glm::vec3 newPos = playerPos + movement;
-        
-        // Clamp to map boundaries
+
         newPos.x = glm::clamp(newPos.x, -MAP_SIZE + 1.0f, MAP_SIZE - 1.0f);
         newPos.z = glm::clamp(newPos.z, -MAP_SIZE + 1.0f, MAP_SIZE - 1.0f);
-        
-        // Check collision - try X and Z separately for sliding along walls
+
         glm::vec3 testPosX = glm::vec3(newPos.x, playerPos.y, playerPos.z);
         glm::vec3 testPosZ = glm::vec3(playerPos.x, playerPos.y, newPos.z);
-        
-        bool canMoveX = !checkCollision(testPosX);
-        bool canMoveZ = !checkCollision(testPosZ);
-        
-        if (canMoveX) {
+
+        if (!checkCollision(testPosX)) {
             playerPos.x = newPos.x;
         }
-        if (canMoveZ) {
+        if (!checkCollision(testPosZ)) {
             playerPos.z = newPos.z;
         }
     }
@@ -502,17 +370,17 @@ void HiddenMinigame::update(float deltaTime) {
     lensActive = input.isKeyDown(GLFW_KEY_E);
 
     float distToCat = glm::length(glm::vec2(playerPos.x - catPosition.x, playerPos.z - catPosition.z));
-    
+
     if (distToCat < catFindRadius && lensActive) {
         if (input.leftMousePressed) {
             catFound = true;
             isGameOver = true;
             playerWon = true;
-            
+
             GLFWwindow* window = glfwGetCurrentContext();
             glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
             cursorLocked = false;
-            
+
             std::cout << "YOU FOUND THE CAT! Victory!" << std::endl;
         }
     }
@@ -539,47 +407,106 @@ void HiddenMinigame::render() {
 
     glUseProgram(shaderProgram);
 
-    glm::mat4 projection = glm::perspective(glm::radians(60.0f), (float)screenWidth / (float)screenHeight, 0.1f, 100.0f);
-    
+    glm::mat4 projection = glm::perspective(glm::radians(60.0f), (float)screenWidth / (float)screenHeight, 0.1f, 200.0f);
+
     glm::vec3 front;
     front.x = cos(glm::radians(playerYaw)) * cos(glm::radians(playerPitch));
     front.y = sin(glm::radians(playerPitch));
     front.z = sin(glm::radians(playerYaw)) * cos(glm::radians(playerPitch));
     front = glm::normalize(front);
-    
+
     glm::mat4 view = glm::lookAt(playerPos, playerPos + front, glm::vec3(0.0f, 1.0f, 0.0f));
 
     glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "view"), 1, GL_FALSE, glm::value_ptr(view));
     glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "projection"), 1, GL_FALSE, glm::value_ptr(projection));
     glUniform3fv(glGetUniformLocation(shaderProgram, "cameraPos"), 1, glm::value_ptr(playerPos));
 
+    // Set up directional light (sun/moonlight from above)
+    glm::vec3 lightDir = glm::normalize(glm::vec3(-0.3f, -1.0f, -0.5f));
+    glm::vec3 lightColor = glm::vec3(0.6f, 0.65f, 0.7f);  // Dim bluish moonlight
+    glm::vec3 ambientLight = glm::vec3(0.15f, 0.15f, 0.2f);  // Low ambient
+    
+    glUniform3fv(glGetUniformLocation(shaderProgram, "lightDir"), 1, glm::value_ptr(lightDir));
+    glUniform3fv(glGetUniformLocation(shaderProgram, "lightColor"), 1, glm::value_ptr(lightColor));
+    glUniform3fv(glGetUniformLocation(shaderProgram, "ambientLight"), 1, glm::value_ptr(ambientLight));
+
     glUniform1f(glGetUniformLocation(shaderProgram, "fogDensity"), fogDensity);
     glUniform3fv(glGetUniformLocation(shaderProgram, "fogColor"), 1, glm::value_ptr(FOG_COLOR));
     glUniform1i(glGetUniformLocation(shaderProgram, "useFog"), 1);
 
-    for (const auto& obj : sceneObjects) {
-        // Skip rendering the door if lens is not active
-        if (obj.type == ObjectType::HOUSE_DOOR && !lensActive) {
-            continue;
-        }
-        renderObject(obj);
-    }
+    // Render ground
+    renderGround();
 
+    // Render house
+    renderHouse();
+
+    // Render all trees
+    renderTrees();
+
+    // Render the cat
     renderCat();
+
+    // HUD on top
     renderHUD();
+}
+
+void HiddenMinigame::renderGround() {
+    glm::mat4 model = glm::mat4(1.0f);
+    model = glm::translate(model, glm::vec3(0.0f, -0.25f, 0.0f));
+    model = glm::scale(model, glm::vec3(MAP_SIZE * 2, 0.5f, MAP_SIZE * 2));
+    renderCube(model, glm::vec3(0.12f, 0.22f, 0.08f));
+}
+
+void HiddenMinigame::renderHouse() {
+    glm::mat4 model = glm::mat4(1.0f);
+    model = glm::translate(model, housePosition);
+    model = glm::scale(model, glm::vec3(houseScale));
+
+    glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "model"), 1, GL_FALSE, glm::value_ptr(model));
+
+    glUniform1i(glGetUniformLocation(shaderProgram, "useTexture"), 1);
+    glUniform1i(glGetUniformLocation(shaderProgram, "texture_diffuse"), 0);
+    glUniform1i(glGetUniformLocation(shaderProgram, "texture_emission"), 1);
+    glUniform1i(glGetUniformLocation(shaderProgram, "texture_roughness"), 2);
+    glUniform1i(glGetUniformLocation(shaderProgram, "texture_ao"), 3);
+    glUniform1i(glGetUniformLocation(shaderProgram, "texture_opacity"), 4);
+    glUniform1i(glGetUniformLocation(shaderProgram, "texture_normal"), 5);
+
+    houseModel.render();
+}
+
+void HiddenMinigame::renderTrees() {
+    for (const auto& tree : trees) {
+        glm::mat4 model = glm::mat4(1.0f);
+        model = glm::translate(model, tree.position);
+        model = glm::rotate(model, glm::radians(tree.rotationY), glm::vec3(0.0f, 1.0f, 0.0f));
+        model = glm::scale(model, glm::vec3(tree.scale));
+
+        glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "model"), 1, GL_FALSE, glm::value_ptr(model));
+
+        glUniform1i(glGetUniformLocation(shaderProgram, "useTexture"), 1);
+        glUniform1i(glGetUniformLocation(shaderProgram, "texture_diffuse"), 0);
+        glUniform1i(glGetUniformLocation(shaderProgram, "texture_emission"), 1);
+        glUniform1i(glGetUniformLocation(shaderProgram, "texture_roughness"), 2);
+        glUniform1i(glGetUniformLocation(shaderProgram, "texture_ao"), 3);
+        glUniform1i(glGetUniformLocation(shaderProgram, "texture_opacity"), 4);
+        glUniform1i(glGetUniformLocation(shaderProgram, "texture_normal"), 5);
+
+        treeModel.render();
+    }
 }
 
 void HiddenMinigame::renderObject(const SceneObject& obj) {
     glm::mat4 model = glm::mat4(1.0f);
     model = glm::translate(model, obj.position);
-    
+
     if (obj.rotation.x != 0.0f)
         model = glm::rotate(model, glm::radians(obj.rotation.x), glm::vec3(1.0f, 0.0f, 0.0f));
     if (obj.rotation.y != 0.0f)
         model = glm::rotate(model, glm::radians(obj.rotation.y), glm::vec3(0.0f, 1.0f, 0.0f));
     if (obj.rotation.z != 0.0f)
         model = glm::rotate(model, glm::radians(obj.rotation.z), glm::vec3(0.0f, 0.0f, 1.0f));
-    
+
     model = glm::scale(model, obj.size);
 
     renderCube(model, obj.color);
@@ -599,8 +526,8 @@ void HiddenMinigame::renderCube(glm::mat4 model, glm::vec3 color) {
 void HiddenMinigame::renderCat() {
     glm::mat4 catMatrix = glm::mat4(1.0f);
     catMatrix = glm::translate(catMatrix, catPosition);
-    catMatrix = glm::scale(catMatrix, glm::vec3(0.002f));  // Much smaller cat!
-    
+    catMatrix = glm::scale(catMatrix, glm::vec3(0.002f));
+
     glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "model"), 1, GL_FALSE, glm::value_ptr(catMatrix));
 
     glUniform1i(glGetUniformLocation(shaderProgram, "useTexture"), 1);
@@ -615,96 +542,79 @@ void HiddenMinigame::renderCat() {
 }
 
 void HiddenMinigame::renderHUD() {
-    // Don't render HUD while waiting to start
     if (waitingToStart) return;
-    
-    // Calculate remaining time
+
     float timeRemaining = timeLimit - timeElapsed;
     if (timeRemaining < 0.0f) timeRemaining = 0.0f;
 
-    // Disable depth test for HUD
     glDisable(GL_DEPTH_TEST);
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
     glUseProgram(shaderProgram);
 
-    // Timer bar settings
     float barWidth = 0.8f;
     float barHeight = 0.05f;
     float barY = 0.9f;
-    
-    // Set orthographic projection for HUD
+
     glm::mat4 orthoProj = glm::ortho(-1.0f, 1.0f, -1.0f, 1.0f, -1.0f, 1.0f);
     glm::mat4 identityView = glm::mat4(1.0f);
-    
+
     glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "projection"), 1, GL_FALSE, glm::value_ptr(orthoProj));
     glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "view"), 1, GL_FALSE, glm::value_ptr(identityView));
-    glUniform1i(glGetUniformLocation(shaderProgram, "useFog"), 0);  // Disable fog for HUD
-    
-    // Background bar (dark)
+    glUniform1i(glGetUniformLocation(shaderProgram, "useFog"), 0);
+
     glm::mat4 bgBar = glm::mat4(1.0f);
     bgBar = glm::translate(bgBar, glm::vec3(0.0f, barY, 0.0f));
     bgBar = glm::scale(bgBar, glm::vec3(barWidth, barHeight, 0.1f));
     renderCube(bgBar, glm::vec3(0.2f, 0.2f, 0.2f));
-    
-    // Progress bar (shows time remaining)
+
     float progress = timeRemaining / timeLimit;
     glm::mat4 progressBar = glm::mat4(1.0f);
     float progressWidth = barWidth * progress;
     float offsetX = -(barWidth - progressWidth) / 2.0f;
     progressBar = glm::translate(progressBar, glm::vec3(offsetX, barY, 0.1f));
     progressBar = glm::scale(progressBar, glm::vec3(progressWidth, barHeight * 0.8f, 0.1f));
-    
-    // Color changes as time runs out (green -> yellow -> red)
+
     glm::vec3 timerColor;
     if (progress > 0.5f) {
-        timerColor = glm::vec3(0.2f, 0.8f, 0.2f);  // Green
+        timerColor = glm::vec3(0.2f, 0.8f, 0.2f);
     } else if (progress > 0.25f) {
-        timerColor = glm::vec3(0.9f, 0.7f, 0.1f);  // Yellow
+        timerColor = glm::vec3(0.9f, 0.7f, 0.1f);
     } else {
-        timerColor = glm::vec3(0.9f, 0.2f, 0.2f);  // Red
+        timerColor = glm::vec3(0.9f, 0.2f, 0.2f);
     }
     renderCube(progressBar, timerColor);
-    
-    // Render seconds remaining as blocks (each block = 5 seconds, 18 blocks for 90 seconds)
+
     int secondsRemaining = static_cast<int>(timeRemaining);
-    int numBlocks = 18;  // 90 seconds / 5 seconds per block
+    int numBlocks = 18;
     float blockStartX = -0.85f;
     float blockSpacing = 0.095f;
-    
+
     for (int i = 0; i < numBlocks; i++) {
         glm::mat4 blockModel = glm::mat4(1.0f);
         blockModel = glm::translate(blockModel, glm::vec3(blockStartX + i * blockSpacing, barY - 0.1f, 0.0f));
         blockModel = glm::scale(blockModel, glm::vec3(0.07f, 0.04f, 0.1f));
-        
+
         bool blockActive = (secondsRemaining > i * 5);
         glm::vec3 blockColor = blockActive ? timerColor : glm::vec3(0.15f, 0.15f, 0.15f);
         renderCube(blockModel, blockColor);
     }
-    
-    // Lens indicator (show if lens is active)
+
     if (lensActive) {
         glm::mat4 lensIndicator = glm::mat4(1.0f);
         lensIndicator = glm::translate(lensIndicator, glm::vec3(0.0f, -0.85f, 0.0f));
         lensIndicator = glm::scale(lensIndicator, glm::vec3(0.15f, 0.05f, 0.1f));
-        renderCube(lensIndicator, glm::vec3(0.2f, 0.8f, 1.0f));  // Cyan color for lens active
+        renderCube(lensIndicator, glm::vec3(0.2f, 0.8f, 1.0f));
     }
 
-    // Re-enable depth test
     glEnable(GL_DEPTH_TEST);
 }
 
 bool HiddenMinigame::checkCollision(glm::vec3 newPos) {
     for (const auto& obj : sceneObjects) {
-        // Skip objects without collision
         if (!obj.hasCollision) continue;
-        
-        // Special case: door only has collision when lens is active
-        if (obj.type == ObjectType::HOUSE_DOOR && !lensActive) {
-            continue;
-        }
-        
+
         if (checkAABBCollision(newPos, PLAYER_RADIUS, obj)) {
             return true;
         }
@@ -713,25 +623,21 @@ bool HiddenMinigame::checkCollision(glm::vec3 newPos) {
 }
 
 bool HiddenMinigame::checkAABBCollision(glm::vec3 playerPosition, float playerRadius, const SceneObject& obj) {
-    // Get object bounds (AABB)
     glm::vec3 objMin = obj.position - obj.size * 0.5f;
     glm::vec3 objMax = obj.position + obj.size * 0.5f;
-    
-    // Expand the AABB by player radius for cylinder-box collision
+
     objMin.x -= playerRadius;
     objMin.z -= playerRadius;
     objMax.x += playerRadius;
     objMax.z += playerRadius;
-    
-    // Check if player position is inside the expanded AABB (only X and Z, ignore Y for simplicity)
-    // Also check Y to make sure we're at the right height level
+
     float playerFeet = playerPosition.y - PLAYER_HEIGHT;
-    float playerHead = playerPosition.y + 0.3f;  // Small buffer above head
-    
+    float playerHead = playerPosition.y + 0.3f;
+
     bool xOverlap = playerPosition.x >= objMin.x && playerPosition.x <= objMax.x;
     bool zOverlap = playerPosition.z >= objMin.z && playerPosition.z <= objMax.z;
     bool yOverlap = playerHead >= objMin.y && playerFeet <= objMax.y;
-    
+
     return xOverlap && zOverlap && yOverlap;
 }
 

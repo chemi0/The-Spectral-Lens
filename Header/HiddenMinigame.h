@@ -10,7 +10,6 @@ enum class ObjectType {
     GROUND,
     HOUSE_WALL,
     HOUSE_ROOF,
-    HOUSE_DOOR,     // Special door that only appears with lens
     TREE_TRUNK,
     TREE_LEAVES,
     ROCK,
@@ -88,7 +87,21 @@ private:
     float catFindRadius;
     bool catFound;
 
-    // Scene objects
+    // Level models
+    Model houseModel;
+    Model treeModel;
+    glm::vec3 housePosition;
+    float houseScale;
+
+    // Tree positions and scales for rendering
+    struct TreeInstance {
+        glm::vec3 position;
+        float scale;
+        float rotationY;  // Random Y rotation for variety
+    };
+    std::vector<TreeInstance> trees;
+
+    // Scene objects (for collision boxes)
     std::vector<SceneObject> sceneObjects;
 
     // Map boundaries
@@ -96,16 +109,15 @@ private:
 
     // Setup functions
     void initializeScene();
-    void createHouse(glm::vec3 position);
-    void createTree(glm::vec3 position, float scale = 1.0f);
-    void createRock(glm::vec3 position, float scale = 1.0f);
-    void createFence(glm::vec3 start, glm::vec3 end);
     void placeCatRandomly();
 
     // Rendering functions
     void renderObject(const SceneObject& obj);
     void renderCube(glm::mat4 model, glm::vec3 color);
     void renderCat();
+    void renderHouse();
+    void renderTrees();
+    void renderGround();
     void renderHUD();
 
     // Collision detection
