@@ -154,6 +154,77 @@ waitingToStart(true), spaceWasPressed(true)
     groundModel.aoTex = groundModel.loadTexture("Resources/PlatformTexture/armWall.png");
     if (groundModel.aoTex == 0) std::cerr << "Failed to load ground AO texture!" << std::endl;
 
+    // Load skybox cubemap
+    skyboxTexture = loadImageToTexture("Resources/SkyboxCubemaps/RunnerCubemap.png");
+    if (skyboxTexture == 0) {
+        std::cerr << "Failed to load skybox texture!" << std::endl;
+    } else {
+        std::cout << "Skybox texture loaded successfully with ID: " << skyboxTexture << std::endl;
+    }
+
+    // Create skybox cube VAO with position and UV coordinates
+    // Fixed UV mapping to sample from the sunset band in center of image
+    float skyboxVertices[] = {
+        // positions                // UV coords (sunset is in center horizontal band)
+        -1.0f,  1.0f, -1.0f,        0.25f, 0.40f,
+        -1.0f, -1.0f, -1.0f,        0.25f, 0.60f,
+         1.0f, -1.0f, -1.0f,        0.50f, 0.60f,
+         1.0f, -1.0f, -1.0f,        0.50f, 0.60f,
+         1.0f,  1.0f, -1.0f,        0.50f, 0.40f,
+        -1.0f,  1.0f, -1.0f,        0.25f, 0.40f,
+
+        -1.0f, -1.0f,  1.0f,        0.00f, 0.60f,
+        -1.0f, -1.0f, -1.0f,        0.25f, 0.60f,
+        -1.0f,  1.0f, -1.0f,        0.25f, 0.40f,
+        -1.0f,  1.0f, -1.0f,        0.25f, 0.40f,
+        -1.0f,  1.0f,  1.0f,        0.00f, 0.40f,
+        -1.0f, -1.0f,  1.0f,        0.00f, 0.60f,
+
+         1.0f, -1.0f, -1.0f,        0.50f, 0.60f,
+         1.0f, -1.0f,  1.0f,        0.75f, 0.60f,
+         1.0f,  1.0f,  1.0f,        0.75f, 0.40f,
+         1.0f,  1.0f,  1.0f,        0.75f, 0.40f,
+         1.0f,  1.0f, -1.0f,        0.50f, 0.40f,
+         1.0f, -1.0f, -1.0f,        0.50f, 0.60f,
+
+        -1.0f, -1.0f,  1.0f,        0.00f, 0.60f,
+        -1.0f,  1.0f,  1.0f,        0.00f, 0.40f,
+         1.0f,  1.0f,  1.0f,        0.75f, 0.40f,
+         1.0f,  1.0f,  1.0f,        0.75f, 0.40f,
+         1.0f, -1.0f,  1.0f,        0.75f, 0.60f,
+        -1.0f, -1.0f,  1.0f,        0.00f, 0.60f,
+
+        -1.0f,  1.0f, -1.0f,        0.25f, 0.30f,
+         1.0f,  1.0f, -1.0f,        0.50f, 0.30f,
+         1.0f,  1.0f,  1.0f,        0.75f, 0.30f,
+         1.0f,  1.0f,  1.0f,        0.75f, 0.30f,
+        -1.0f,  1.0f,  1.0f,        0.00f, 0.30f,
+        -1.0f,  1.0f, -1.0f,        0.25f, 0.30f,
+
+        -1.0f, -1.0f, -1.0f,        0.25f, 0.70f,
+        -1.0f, -1.0f,  1.0f,        0.00f, 0.70f,
+         1.0f, -1.0f, -1.0f,        0.50f, 0.70f,
+         1.0f, -1.0f, -1.0f,        0.50f, 0.70f,
+        -1.0f, -1.0f,  1.0f,        0.00f, 0.70f,
+         1.0f, -1.0f,  1.0f,        0.75f, 0.70f
+    };
+
+    glGenVertexArrays(1, &skyboxVAO);
+    glGenBuffers(1, &skyboxVBO);
+    glBindVertexArray(skyboxVAO);
+    glBindBuffer(GL_ARRAY_BUFFER, skyboxVBO);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(skyboxVertices), &skyboxVertices, GL_STATIC_DRAW);
+    
+    // Position attribute
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
+    glEnableVertexAttribArray(0);
+    
+    // UV coordinate attribute
+    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float)));
+    glEnableVertexAttribArray(1);
+    
+    glBindVertexArray(0);
+
     // Initialize HUD
     initializeHUD();
 
@@ -172,6 +243,11 @@ RunnerMinigame::~RunnerMinigame() {
     if (hudVBO != 0) glDeleteBuffers(1, &hudVBO);
     if (hudShaderProgram != 0) glDeleteProgram(hudShaderProgram);
     if (fontTexture != 0) glDeleteTextures(1, &fontTexture);
+    
+    // Clean up skybox
+    if (skyboxVAO != 0) glDeleteVertexArrays(1, &skyboxVAO);
+    if (skyboxVBO != 0) glDeleteBuffers(1, &skyboxVBO);
+    if (skyboxTexture != 0) glDeleteTextures(1, &skyboxTexture);
 }
 
 void RunnerMinigame::initializeHUD() {
@@ -394,7 +470,10 @@ void RunnerMinigame::spawnObstacle() {
 }
 
 void RunnerMinigame::render() {
-    glUseProgram(shaderProgram);
+// Render skybox FIRST (behind everything)
+renderSkybox();
+
+glUseProgram(shaderProgram);
 
     // Set fog uniforms
     glUniform1i(glGetUniformLocation(shaderProgram, "useFog"), 1);
@@ -413,6 +492,15 @@ void RunnerMinigame::render() {
     glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
 	glUniformMatrix4fv(projLoc, 1, GL_FALSE, glm::value_ptr(projection));
     glUniform3fv(camPosLoc, 1, glm::value_ptr(camera.Position));
+
+    // Set up directional light (sunset/sunrise lighting to match skybox)
+    glm::vec3 lightDir = glm::normalize(glm::vec3(-0.5f, -0.8f, -0.3f));
+    glm::vec3 lightColor = glm::vec3(1.0f, 0.9f, 0.7f);  // Warm orange/yellow light
+    glm::vec3 ambientLight = glm::vec3(0.4f, 0.35f, 0.3f);  // Warm ambient to match skybox
+    
+    glUniform3fv(glGetUniformLocation(shaderProgram, "lightDir"), 1, glm::value_ptr(lightDir));
+    glUniform3fv(glGetUniformLocation(shaderProgram, "lightColor"), 1, glm::value_ptr(lightColor));
+    glUniform3fv(glGetUniformLocation(shaderProgram, "ambientLight"), 1, glm::value_ptr(ambientLight));
 
     // Calculate Player Matrix with smaller scale
     glm::mat4 playerMatrix = glm::mat4(1.0f);
@@ -614,6 +702,65 @@ void RunnerMinigame::renderStartPrompt() {
     arrowModel = glm::translate(arrowModel, glm::vec3(playerX, playerY + 1.8f + 0.1f * sin(timeElapsed * 3.0f), 0.0f));
     arrowModel = glm::scale(arrowModel, glm::vec3(0.15f, 0.4f, 0.15f));
     renderCube(arrowModel, glm::vec3(1.0f, 1.0f, 1.0f)); // White arrow
+}
+
+void RunnerMinigame::renderSkybox() {
+    // Disable depth writing so skybox is always behind
+    glDepthFunc(GL_LEQUAL);
+    glDepthMask(GL_FALSE);
+    
+    // Disable face culling so we can see inside the cube
+    glDisable(GL_CULL_FACE);
+
+    glUseProgram(shaderProgram);
+
+    // Remove translation from view matrix (keep only rotation)
+    glm::mat4 view = glm::mat4(glm::mat3(camera.GetViewMatrix()));
+    glm::mat4 projection = glm::perspective(glm::radians(45.0f), float(screenWidth) / float(screenHeight), 0.1f, 100.0f);
+
+    glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "view"), 1, GL_FALSE, glm::value_ptr(view));
+    glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "projection"), 1, GL_FALSE, glm::value_ptr(projection));
+    
+    // Keep skybox small enough to avoid fog issues
+    glm::mat4 model = glm::mat4(1.0f);
+    model = glm::scale(model, glm::vec3(1.0f));
+    glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "model"), 1, GL_FALSE, glm::value_ptr(model));
+
+    // Set camera position to origin (since we removed translation from view)
+    glm::vec3 origin(0.0f);
+    glUniform3fv(glGetUniformLocation(shaderProgram, "cameraPos"), 1, glm::value_ptr(origin));
+
+    // Use fog with zero density to completely disable fog effect
+    // (the else branch in shader still applies default fog, so we must use useFog=true with density=0)
+    glUniform1i(glGetUniformLocation(shaderProgram, "useFog"), 1);
+    glUniform1f(glGetUniformLocation(shaderProgram, "fogDensity"), 0.0f);
+    glUniform3f(glGetUniformLocation(shaderProgram, "fogColor"), 0.0f, 0.0f, 0.0f);
+    
+    // Use texture mode with white tint
+    glUniform1i(glGetUniformLocation(shaderProgram, "useTexture"), 1);
+    glUniform3f(glGetUniformLocation(shaderProgram, "uColor"), 1.0f, 1.0f, 1.0f);
+
+    // Bind skybox texture
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, skyboxTexture);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glUniform1i(glGetUniformLocation(shaderProgram, "texture_diffuse"), 0);
+
+    // Render skybox cube using skybox VAO
+    // Provide default normal and tangent attributes since skybox VAO doesn't have them
+    glBindVertexArray(skyboxVAO);
+    glVertexAttrib3f(2, 0.0f, 1.0f, 0.0f);  // Default normal (up)
+    glVertexAttrib3f(3, 1.0f, 0.0f, 0.0f);  // Default tangent
+    glDrawArrays(GL_TRIANGLES, 0, 36);
+    glBindVertexArray(0);
+
+    // Restore depth and culling settings
+    glDepthMask(GL_TRUE);
+    glDepthFunc(GL_LESS);
+    glEnable(GL_CULL_FACE);
 }
 
 bool RunnerMinigame::checkWinCondition() {

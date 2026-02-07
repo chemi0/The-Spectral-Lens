@@ -81,10 +81,15 @@ private:
 	void renderTimerHUD();
 	void renderObstacle(const Obstacle& obs);
 	void renderStartPrompt();  // Start screen prompt
+	void renderSkybox();  // Skybox rendering
 
 	// Models
 	Model playerModel;
 	Model obstacleModel;
 	Model groundModel;  // Textured ground platform
+
+	// Skybox
+	unsigned int skyboxVAO, skyboxVBO;
+	unsigned int skyboxTexture;
 
 };
