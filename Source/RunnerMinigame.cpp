@@ -139,6 +139,20 @@ RunnerMinigame::RunnerMinigame(int width, int height)
     obstacleModel.roughnessTex = obstacleModel.loadTexture("Resources/RunnerObstacle/obstacleRoughness.png");
     if (obstacleModel.roughnessTex == 0) std::cerr << "Failed to load obstacle roughness texture!" << std::endl;
 
+    // Load ground platform model (textured rock wall)
+    if (!groundModel.loadModel("Resources/PlatformTexture/rock_wall_16_1k.obj")) {
+        std::cerr << "Failed to load ground model!" << std::endl;
+    }
+
+    groundModel.diffuseTex = groundModel.loadTexture("Resources/PlatformTexture/diffWall.png");
+    if (groundModel.diffuseTex == 0) std::cerr << "Failed to load ground diffuse texture!" << std::endl;
+
+    groundModel.normalMapTex = groundModel.loadTexture("Resources/PlatformTexture/normalWall.png");
+    if (groundModel.normalMapTex == 0) std::cerr << "Failed to load ground normal texture!" << std::endl;
+
+    groundModel.aoTex = groundModel.loadTexture("Resources/PlatformTexture/armWall.png");
+    if (groundModel.aoTex == 0) std::cerr << "Failed to load ground AO texture!" << std::endl;
+
     // Initialize HUD
     initializeHUD();
 
@@ -400,11 +414,23 @@ void RunnerMinigame::render() {
         renderObstacle(obs);
     }
 
-    // Floor (Grey Strip)
-	glm::mat4 floorModel = glm::mat4(1.0f);
+    // Floor (Textured Rock Wall Platform)
+    glm::mat4 floorModel = glm::mat4(1.0f);
     floorModel = glm::translate(floorModel, glm::vec3(0.0f, -0.5f, -25.0f));
     floorModel = glm::scale(floorModel, glm::vec3(LANE_WIDTH * 3 + 2.0f, 0.5f, 60.0f));
-	renderCube(floorModel, glm::vec3(0.25f, 0.25f, 0.3f));
+    
+    glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "model"), 1, GL_FALSE, glm::value_ptr(floorModel));
+    
+    // Enable texturing for ground
+    glUniform1i(glGetUniformLocation(shaderProgram, "useTexture"), 1);
+    glUniform1i(glGetUniformLocation(shaderProgram, "texture_diffuse"), 0);
+    glUniform1i(glGetUniformLocation(shaderProgram, "texture_emission"), 1);
+    glUniform1i(glGetUniformLocation(shaderProgram, "texture_roughness"), 2);
+    glUniform1i(glGetUniformLocation(shaderProgram, "texture_ao"), 3);
+    glUniform1i(glGetUniformLocation(shaderProgram, "texture_opacity"), 4);
+    glUniform1i(glGetUniformLocation(shaderProgram, "texture_normal"), 5);
+    
+    groundModel.render();
 
     // Render timer HUD
     renderTimerHUD();

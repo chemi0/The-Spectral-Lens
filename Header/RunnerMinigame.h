@@ -81,5 +81,6 @@ private:
 	// Models
 	Model playerModel;
 	Model obstacleModel;
+	Model groundModel;  // Textured ground platform
 
 };
