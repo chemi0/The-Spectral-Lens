@@ -18,13 +18,13 @@ const float FOG_DENSITY = 0.08f;        // Higher fog density for difficulty
 const glm::vec3 FOG_COLOR = glm::vec3(0.1f, 0.12f, 0.1f);
 
 RunnerMinigame::RunnerMinigame(int width, int height)
-	: screenWidth(width), screenHeight(height),
-	isGameOver(false), playerWon(false), timeElapsed(0.0f),
-	currentLane(1), playerX(0.0f), targetX(0.0f),
-	spawnTimer(0.0f), gameSpeed(20.0f), survivalTimer(0.0f),  // Faster game speed (was 15.0f)
-    verticalVelocity(0.0f), isJumping(false), playerScaleY(1.0f), targetScaleY(1.0f),
-	camera(glm::vec3(0.0f, 3.0f, 5.0f), glm::vec3(0.0f, 1.0f, 0.0f), -90.f, -20.0f), // Adjusted camera for smaller player
-	hudShaderProgram(0), hudVAO(0), hudVBO(0), fontTexture(0)
+: screenWidth(width), screenHeight(height),
+isGameOver(false), playerWon(false), timeElapsed(0.0f),
+currentLane(1), playerX(0.0f), targetX(0.0f),
+spawnTimer(0.0f), gameSpeed(20.0f), survivalTimer(0.0f),  // Faster game speed (was 15.0f)
+verticalVelocity(0.0f), isJumping(false), playerScaleY(1.0f), targetScaleY(1.0f),
+camera(glm::vec3(0.0f, 3.0f, 5.0f), glm::vec3(0.0f, 1.0f, 0.0f), -90.f, -20.0f), // Adjusted camera for smaller player
+hudShaderProgram(0), hudVAO(0), hudVBO(0), fontTexture(0), groundOffset(0.0f)
 {
 	// Load Shaders
 	shaderProgram = createShader("Shaders/basic_3d.vert", "Shaders/basic_3d.frag");
@@ -324,6 +324,13 @@ void RunnerMinigame::update(float deltaTime) {
     obstacles.erase(std::remove_if(obstacles.begin(), obstacles.end(), 
 		[](Obstacle& o) { return o.position.z > 5.0f; }), obstacles.end());
 
+    // Update ground scroll offset (creates illusion of movement)
+    groundOffset += gameSpeed * deltaTime;
+    // Wrap offset to prevent floating-point precision issues
+    if (groundOffset > 100.0f) {
+        groundOffset -= 100.0f;
+    }
+
     // Win Condition
     if (survivalTimer >= MAX_SURVIVAL_TIME) {
         isGameOver = true;
@@ -414,23 +421,28 @@ void RunnerMinigame::render() {
         renderObstacle(obs);
     }
 
-    // Floor (Textured Rock Wall Platform)
-    glm::mat4 floorModel = glm::mat4(1.0f);
-    floorModel = glm::translate(floorModel, glm::vec3(0.0f, -0.5f, -25.0f));
-    floorModel = glm::scale(floorModel, glm::vec3(LANE_WIDTH * 3 + 2.0f, 0.5f, 60.0f));
+    // Floor (Textured Rock Wall Platform) - with scrolling motion
+    // Render multiple copies to create seamless infinite runway
+    const float PLATFORM_DEPTH = 60.0f;
     
-    glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "model"), 1, GL_FALSE, glm::value_ptr(floorModel));
-    
-    // Enable texturing for ground
-    glUniform1i(glGetUniformLocation(shaderProgram, "useTexture"), 1);
-    glUniform1i(glGetUniformLocation(shaderProgram, "texture_diffuse"), 0);
-    glUniform1i(glGetUniformLocation(shaderProgram, "texture_emission"), 1);
-    glUniform1i(glGetUniformLocation(shaderProgram, "texture_roughness"), 2);
-    glUniform1i(glGetUniformLocation(shaderProgram, "texture_ao"), 3);
-    glUniform1i(glGetUniformLocation(shaderProgram, "texture_opacity"), 4);
-    glUniform1i(glGetUniformLocation(shaderProgram, "texture_normal"), 5);
-    
-    groundModel.render();
+    for (int i = -1; i <= 1; i++) {  // Render 3 copies: behind, current, ahead
+        glm::mat4 floorModel = glm::mat4(1.0f);
+        floorModel = glm::translate(floorModel, glm::vec3(0.0f, -0.5f, -25.0f + groundOffset + (i * PLATFORM_DEPTH)));
+        floorModel = glm::scale(floorModel, glm::vec3(LANE_WIDTH * 3 + 2.0f, 0.5f, PLATFORM_DEPTH));
+        
+        glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "model"), 1, GL_FALSE, glm::value_ptr(floorModel));
+        
+        // Enable texturing for ground
+        glUniform1i(glGetUniformLocation(shaderProgram, "useTexture"), 1);
+        glUniform1i(glGetUniformLocation(shaderProgram, "texture_diffuse"), 0);
+        glUniform1i(glGetUniformLocation(shaderProgram, "texture_emission"), 1);
+        glUniform1i(glGetUniformLocation(shaderProgram, "texture_roughness"), 2);
+        glUniform1i(glGetUniformLocation(shaderProgram, "texture_ao"), 3);
+        glUniform1i(glGetUniformLocation(shaderProgram, "texture_opacity"), 4);
+        glUniform1i(glGetUniformLocation(shaderProgram, "texture_normal"), 5);
+        
+        groundModel.render();
+    }
 
     // Render timer HUD
     renderTimerHUD();

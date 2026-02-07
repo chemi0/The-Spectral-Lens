@@ -64,6 +64,7 @@ private:
 	float gameSpeed;
 	float survivalTimer;
 	bool isGameOver, playerWon;
+	float groundOffset;  // Ground scroll offset for movement illusion
 
 	// HUD resources
 	unsigned int hudShaderProgram;
