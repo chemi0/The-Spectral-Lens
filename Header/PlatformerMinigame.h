@@ -100,4 +100,9 @@ private:
     // HUD rendering
     void initializeHUD();
     void renderStartPrompt();
+    void renderSkybox();
+
+    // Skybox
+    unsigned int skyboxVAO, skyboxVBO;
+    unsigned int skyboxTexture;
 };

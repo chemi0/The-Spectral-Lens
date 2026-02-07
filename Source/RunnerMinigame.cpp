@@ -163,57 +163,62 @@ waitingToStart(true), spaceWasPressed(true)
     }
 
     // Create skybox cube VAO with position and UV coordinates
-    // Fixed UV mapping to sample from the sunset band in center of image
+    // Cross-format cubemap UV mapping
     float skyboxVertices[] = {
-        // positions                // UV coords (sunset is in center horizontal band)
-        -1.0f,  1.0f, -1.0f,        0.25f, 0.40f,
-        -1.0f, -1.0f, -1.0f,        0.25f, 0.60f,
-         1.0f, -1.0f, -1.0f,        0.50f, 0.60f,
-         1.0f, -1.0f, -1.0f,        0.50f, 0.60f,
-         1.0f,  1.0f, -1.0f,        0.50f, 0.40f,
-        -1.0f,  1.0f, -1.0f,        0.25f, 0.40f,
+        // Back face
+        -1.0f,  1.0f, -1.0f,   0.25f, 0.3334f,
+        -1.0f, -1.0f, -1.0f,   0.25f, 0.6666f,
+         1.0f, -1.0f, -1.0f,   0.50f, 0.6666f,
+         1.0f, -1.0f, -1.0f,   0.50f, 0.6666f,
+         1.0f,  1.0f, -1.0f,   0.50f, 0.3334f,
+        -1.0f,  1.0f, -1.0f,   0.25f, 0.3334f,
 
-        -1.0f, -1.0f,  1.0f,        0.00f, 0.60f,
-        -1.0f, -1.0f, -1.0f,        0.25f, 0.60f,
-        -1.0f,  1.0f, -1.0f,        0.25f, 0.40f,
-        -1.0f,  1.0f, -1.0f,        0.25f, 0.40f,
-        -1.0f,  1.0f,  1.0f,        0.00f, 0.40f,
-        -1.0f, -1.0f,  1.0f,        0.00f, 0.60f,
+        // Left face
+        -1.0f, -1.0f,  1.0f,   0.00f, 0.6666f,
+        -1.0f, -1.0f, -1.0f,   0.25f, 0.6666f,
+        -1.0f,  1.0f, -1.0f,   0.25f, 0.3334f,
+        -1.0f,  1.0f, -1.0f,   0.25f, 0.3334f,
+        -1.0f,  1.0f,  1.0f,   0.00f, 0.3334f,
+        -1.0f, -1.0f,  1.0f,   0.00f, 0.6666f,
 
-         1.0f, -1.0f, -1.0f,        0.50f, 0.60f,
-         1.0f, -1.0f,  1.0f,        0.75f, 0.60f,
-         1.0f,  1.0f,  1.0f,        0.75f, 0.40f,
-         1.0f,  1.0f,  1.0f,        0.75f, 0.40f,
-         1.0f,  1.0f, -1.0f,        0.50f, 0.40f,
-         1.0f, -1.0f, -1.0f,        0.50f, 0.60f,
+        // Right face
+         1.0f, -1.0f, -1.0f,   0.50f, 0.6666f,
+         1.0f, -1.0f,  1.0f,   0.75f, 0.6666f,
+         1.0f,  1.0f,  1.0f,   0.75f, 0.3334f,
+         1.0f,  1.0f,  1.0f,   0.75f, 0.3334f,
+         1.0f,  1.0f, -1.0f,   0.50f, 0.3334f,
+         1.0f, -1.0f, -1.0f,   0.50f, 0.6666f,
 
-        -1.0f, -1.0f,  1.0f,        0.00f, 0.60f,
-        -1.0f,  1.0f,  1.0f,        0.00f, 0.40f,
-         1.0f,  1.0f,  1.0f,        0.75f, 0.40f,
-         1.0f,  1.0f,  1.0f,        0.75f, 0.40f,
-         1.0f, -1.0f,  1.0f,        0.75f, 0.60f,
-        -1.0f, -1.0f,  1.0f,        0.00f, 0.60f,
+        // Front face
+        -1.0f, -1.0f,  1.0f,   1.00f, 0.6666f,
+        -1.0f,  1.0f,  1.0f,   1.00f, 0.3334f,
+         1.0f,  1.0f,  1.0f,   0.75f, 0.3334f,
+         1.0f,  1.0f,  1.0f,   0.75f, 0.3334f,
+         1.0f, -1.0f,  1.0f,   0.75f, 0.6666f,
+        -1.0f, -1.0f,  1.0f,   1.00f, 0.6666f,
 
-        -1.0f,  1.0f, -1.0f,        0.25f, 0.30f,
-         1.0f,  1.0f, -1.0f,        0.50f, 0.30f,
-         1.0f,  1.0f,  1.0f,        0.75f, 0.30f,
-         1.0f,  1.0f,  1.0f,        0.75f, 0.30f,
-        -1.0f,  1.0f,  1.0f,        0.00f, 0.30f,
-        -1.0f,  1.0f, -1.0f,        0.25f, 0.30f,
+        // Top face
+        -1.0f,  1.0f, -1.0f,   0.25f, 0.3334f,
+         1.0f,  1.0f, -1.0f,   0.50f, 0.3334f,
+         1.0f,  1.0f,  1.0f,   0.50f, 0.0000f,
+         1.0f,  1.0f,  1.0f,   0.50f, 0.0000f,
+        -1.0f,  1.0f,  1.0f,   0.25f, 0.0000f,
+        -1.0f,  1.0f, -1.0f,   0.25f, 0.3334f,
 
-        -1.0f, -1.0f, -1.0f,        0.25f, 0.70f,
-        -1.0f, -1.0f,  1.0f,        0.00f, 0.70f,
-         1.0f, -1.0f, -1.0f,        0.50f, 0.70f,
-         1.0f, -1.0f, -1.0f,        0.50f, 0.70f,
-        -1.0f, -1.0f,  1.0f,        0.00f, 0.70f,
-         1.0f, -1.0f,  1.0f,        0.75f, 0.70f
+        // Bottom face
+        -1.0f, -1.0f, -1.0f,   0.25f, 0.6666f,
+        -1.0f, -1.0f,  1.0f,   0.25f, 1.0000f,
+         1.0f, -1.0f, -1.0f,   0.50f, 0.6666f,
+         1.0f, -1.0f, -1.0f,   0.50f, 0.6666f,
+        -1.0f, -1.0f,  1.0f,   0.25f, 1.0000f,
+         1.0f, -1.0f,  1.0f,   0.50f, 1.0000f
     };
 
     glGenVertexArrays(1, &skyboxVAO);
     glGenBuffers(1, &skyboxVBO);
     glBindVertexArray(skyboxVAO);
     glBindBuffer(GL_ARRAY_BUFFER, skyboxVBO);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(skyboxVertices), &skyboxVertices, GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(skyboxVertices), skyboxVertices, GL_STATIC_DRAW);
     
     // Position attribute
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);

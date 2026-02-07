@@ -120,6 +120,77 @@ PlatformerMinigame::PlatformerMinigame(int width, int height)
     goalPlatformModel.normalMapTex = goalPlatformModel.loadTexture("Resources/ScifiPlatform/Grunge_LI Hover Platform_normal.jpg");
     goalPlatformModel.aoTex = goalPlatformModel.loadTexture("Resources/ScifiPlatform/Grunge_LI Hover Platform_ao.jpg");
 
+    // Load skybox texture
+    skyboxTexture = loadImageToTexture("Resources/SkyboxCubemaps/PlatformerCubemap.png");
+    if (skyboxTexture == 0) {
+        std::cerr << "Failed to load platformer skybox texture!" << std::endl;
+    }
+
+    // Create skybox cube VAO with position and UV coordinates
+    // Cross-format cubemap UV mapping for center horizontal band
+    float skyboxVertices[] = {
+        // Back face
+        -1.0f,  1.0f, -1.0f,   0.25f, 0.3334f,
+        -1.0f, -1.0f, -1.0f,   0.25f, 0.6666f,
+         1.0f, -1.0f, -1.0f,   0.50f, 0.6666f,
+         1.0f, -1.0f, -1.0f,   0.50f, 0.6666f,
+         1.0f,  1.0f, -1.0f,   0.50f, 0.3334f,
+        -1.0f,  1.0f, -1.0f,   0.25f, 0.3334f,
+
+        // Left face
+        -1.0f, -1.0f,  1.0f,   0.00f, 0.6666f,
+        -1.0f, -1.0f, -1.0f,   0.25f, 0.6666f,
+        -1.0f,  1.0f, -1.0f,   0.25f, 0.3334f,
+        -1.0f,  1.0f, -1.0f,   0.25f, 0.3334f,
+        -1.0f,  1.0f,  1.0f,   0.00f, 0.3334f,
+        -1.0f, -1.0f,  1.0f,   0.00f, 0.6666f,
+
+        // Right face
+         1.0f, -1.0f, -1.0f,   0.50f, 0.6666f,
+         1.0f, -1.0f,  1.0f,   0.75f, 0.6666f,
+         1.0f,  1.0f,  1.0f,   0.75f, 0.3334f,
+         1.0f,  1.0f,  1.0f,   0.75f, 0.3334f,
+         1.0f,  1.0f, -1.0f,   0.50f, 0.3334f,
+         1.0f, -1.0f, -1.0f,   0.50f, 0.6666f,
+
+        // Front face
+        -1.0f, -1.0f,  1.0f,   1.00f, 0.6666f,
+        -1.0f,  1.0f,  1.0f,   1.00f, 0.3334f,
+         1.0f,  1.0f,  1.0f,   0.75f, 0.3334f,
+         1.0f,  1.0f,  1.0f,   0.75f, 0.3334f,
+         1.0f, -1.0f,  1.0f,   0.75f, 0.6666f,
+        -1.0f, -1.0f,  1.0f,   1.00f, 0.6666f,
+
+        // Top face
+        -1.0f,  1.0f, -1.0f,   0.25f, 0.3334f,
+         1.0f,  1.0f, -1.0f,   0.50f, 0.3334f,
+         1.0f,  1.0f,  1.0f,   0.50f, 0.0000f,
+         1.0f,  1.0f,  1.0f,   0.50f, 0.0000f,
+        -1.0f,  1.0f,  1.0f,   0.25f, 0.0000f,
+        -1.0f,  1.0f, -1.0f,   0.25f, 0.3334f,
+
+        // Bottom face
+        -1.0f, -1.0f, -1.0f,   0.25f, 0.6666f,
+        -1.0f, -1.0f,  1.0f,   0.25f, 1.0000f,
+         1.0f, -1.0f, -1.0f,   0.50f, 0.6666f,
+         1.0f, -1.0f, -1.0f,   0.50f, 0.6666f,
+        -1.0f, -1.0f,  1.0f,   0.25f, 1.0000f,
+         1.0f, -1.0f,  1.0f,   0.50f, 1.0000f
+    };
+
+    glGenVertexArrays(1, &skyboxVAO);
+    glGenBuffers(1, &skyboxVBO);
+    glBindVertexArray(skyboxVAO);
+    glBindBuffer(GL_ARRAY_BUFFER, skyboxVBO);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(skyboxVertices), skyboxVertices, GL_STATIC_DRAW);
+
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
+    glEnableVertexAttribArray(0);
+    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float)));
+    glEnableVertexAttribArray(1);
+
+    glBindVertexArray(0);
+
     // Initialize the level
     initializePlatformMap();
     
@@ -141,6 +212,11 @@ PlatformerMinigame::~PlatformerMinigame() {
     if (hudVBO != 0) glDeleteBuffers(1, &hudVBO);
     if (hudShaderProgram != 0) glDeleteProgram(hudShaderProgram);
     if (fontTexture != 0) glDeleteTextures(1, &fontTexture);
+
+    // Clean up skybox
+    if (skyboxVAO != 0) glDeleteVertexArrays(1, &skyboxVAO);
+    if (skyboxVBO != 0) glDeleteBuffers(1, &skyboxVBO);
+    if (skyboxTexture != 0) glDeleteTextures(1, &skyboxTexture);
 }
 
 void PlatformerMinigame::initializeHUD() {
@@ -484,6 +560,9 @@ bool PlatformerMinigame::checkPlatformCollision(const Platform& platform, glm::v
 }
 
 void PlatformerMinigame::render() {
+// Render skybox first (behind everything)
+renderSkybox();
+
 glUseProgram(shaderProgram);
 
 glm::mat4 projection = glm::perspective(glm::radians(45.0f), (float)screenWidth / (float)screenHeight, 0.1f, 100.0f);
@@ -502,8 +581,13 @@ glUniform3fv(glGetUniformLocation(shaderProgram, "lightDir"), 1, glm::value_ptr(
 glUniform3fv(glGetUniformLocation(shaderProgram, "lightColor"), 1, glm::value_ptr(lightColor));
 glUniform3fv(glGetUniformLocation(shaderProgram, "ambientLight"), 1, glm::value_ptr(ambientLight));
 
-// IMPORTANT: Disable fog for platformer (no fog in this minigame)
-glUniform1i(glGetUniformLocation(shaderProgram, "useFog"), 0);
+// Disable fog by using density=0 (useFog=0 triggers shader's default dark fog which blackens everything)
+glUniform1i(glGetUniformLocation(shaderProgram, "useFog"), 1);
+glUniform1f(glGetUniformLocation(shaderProgram, "fogDensity"), 0.0f);
+glUniform3f(glGetUniformLocation(shaderProgram, "fogColor"), 0.0f, 0.0f, 0.0f);
+
+// Set uColor to white for textured model rendering (shader multiplies texture by uColor)
+glUniform3f(glGetUniformLocation(shaderProgram, "uColor"), 1.0f, 1.0f, 1.0f);
 
 // Render platforms
 for (const auto& platform : platforms) {
@@ -643,6 +727,58 @@ void PlatformerMinigame::renderCube(glm::mat4 model, glm::vec3 color) {
     glDisableVertexAttribArray(3);
     glVertexAttrib3f(3, 1.0f, 0.0f, 0.0f);
     glDrawArrays(GL_TRIANGLES, 0, 36);
+}
+
+void PlatformerMinigame::renderSkybox() {
+    glDepthFunc(GL_LEQUAL);
+    glDepthMask(GL_FALSE);
+    glDisable(GL_CULL_FACE);
+
+    glUseProgram(shaderProgram);
+
+    // Remove translation from view matrix (skybox follows camera rotation only)
+    glm::mat4 view = glm::mat4(glm::mat3(camera.GetViewMatrix()));
+    glm::mat4 projection = glm::perspective(glm::radians(45.0f), (float)screenWidth / (float)screenHeight, 0.1f, 100.0f);
+
+    glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "view"), 1, GL_FALSE, glm::value_ptr(view));
+    glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "projection"), 1, GL_FALSE, glm::value_ptr(projection));
+
+    glm::mat4 model = glm::mat4(1.0f);
+    glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "model"), 1, GL_FALSE, glm::value_ptr(model));
+
+    // Set camera position to origin (matches stripped view matrix)
+    glm::vec3 origin(0.0f);
+    glUniform3fv(glGetUniformLocation(shaderProgram, "cameraPos"), 1, glm::value_ptr(origin));
+
+    // Use fog with zero density to bypass the default fog in the else branch
+    glUniform1i(glGetUniformLocation(shaderProgram, "useFog"), 1);
+    glUniform1f(glGetUniformLocation(shaderProgram, "fogDensity"), 0.0f);
+    glUniform3f(glGetUniformLocation(shaderProgram, "fogColor"), 0.0f, 0.0f, 0.0f);
+
+    // Texture mode with white tint (uColor multiplies texture in shader)
+    glUniform1i(glGetUniformLocation(shaderProgram, "useTexture"), 1);
+    glUniform3f(glGetUniformLocation(shaderProgram, "uColor"), 1.0f, 1.0f, 1.0f);
+
+    // Bind skybox texture
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, skyboxTexture);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glUniform1i(glGetUniformLocation(shaderProgram, "texture_diffuse"), 0);
+
+    // Render skybox cube with default normal/tangent attributes
+    glBindVertexArray(skyboxVAO);
+    glVertexAttrib3f(2, 0.0f, 1.0f, 0.0f);
+    glVertexAttrib3f(3, 1.0f, 0.0f, 0.0f);
+    glDrawArrays(GL_TRIANGLES, 0, 36);
+    glBindVertexArray(0);
+
+    // Restore state
+    glDepthMask(GL_TRUE);
+    glDepthFunc(GL_LESS);
+    glEnable(GL_CULL_FACE);
 }
 
 bool PlatformerMinigame::checkWinCondition() {

@@ -465,6 +465,7 @@ void HiddenMinigame::renderHouse() {
     glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "model"), 1, GL_FALSE, glm::value_ptr(model));
 
     glUniform1i(glGetUniformLocation(shaderProgram, "useTexture"), 1);
+    glUniform3f(glGetUniformLocation(shaderProgram, "uColor"), 1.0f, 1.0f, 1.0f);  // White tint for texture
     glUniform1i(glGetUniformLocation(shaderProgram, "texture_diffuse"), 0);
     glUniform1i(glGetUniformLocation(shaderProgram, "texture_emission"), 1);
     glUniform1i(glGetUniformLocation(shaderProgram, "texture_roughness"), 2);
@@ -485,6 +486,7 @@ void HiddenMinigame::renderTrees() {
         glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "model"), 1, GL_FALSE, glm::value_ptr(model));
 
         glUniform1i(glGetUniformLocation(shaderProgram, "useTexture"), 1);
+        glUniform3f(glGetUniformLocation(shaderProgram, "uColor"), 1.0f, 1.0f, 1.0f);  // White tint for texture
         glUniform1i(glGetUniformLocation(shaderProgram, "texture_diffuse"), 0);
         glUniform1i(glGetUniformLocation(shaderProgram, "texture_emission"), 1);
         glUniform1i(glGetUniformLocation(shaderProgram, "texture_roughness"), 2);
@@ -531,6 +533,7 @@ void HiddenMinigame::renderCat() {
     glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "model"), 1, GL_FALSE, glm::value_ptr(catMatrix));
 
     glUniform1i(glGetUniformLocation(shaderProgram, "useTexture"), 1);
+    glUniform3f(glGetUniformLocation(shaderProgram, "uColor"), 1.0f, 1.0f, 1.0f);  // White tint for texture
     glUniform1i(glGetUniformLocation(shaderProgram, "texture_diffuse"), 0);
     glUniform1i(glGetUniformLocation(shaderProgram, "texture_emission"), 1);
     glUniform1i(glGetUniformLocation(shaderProgram, "texture_roughness"), 2);
