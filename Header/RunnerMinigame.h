@@ -41,6 +41,8 @@ private:
 
 	// Game logic
 	float timeElapsed;
+	bool waitingToStart;    // Freeze game until player presses space
+	bool spaceWasPressed;   // Track space key state for edge detection
 
 	// Horizontal Movement (Lane Switching)
 	int currentLane;
@@ -78,6 +80,7 @@ private:
 	void initializeHUD();
 	void renderTimerHUD();
 	void renderObstacle(const Obstacle& obs);
+	void renderStartPrompt();  // Start screen prompt
 
 	// Models
 	Model playerModel;

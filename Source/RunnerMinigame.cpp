@@ -11,7 +11,7 @@ const float MAX_SURVIVAL_TIME = 30.0f; // Player needs to survive for 30 seconds
 
 // Scale factors for player and obstacles
 const float PLAYER_SCALE = 0.003f;      // Smaller player (was 0.005f)
-const float OBSTACLE_SCALE = 0.5f;      // Reasonable scale for the pumpkin obstacle model
+const float OBSTACLE_SCALE = 0.4f;      // Reasonable scale for the pumpkin obstacle model
 
 // Fog settings
 const float FOG_DENSITY = 0.08f;        // Higher fog density for difficulty
@@ -24,7 +24,8 @@ currentLane(1), playerX(0.0f), targetX(0.0f),
 spawnTimer(0.0f), gameSpeed(20.0f), survivalTimer(0.0f),  // Faster game speed (was 15.0f)
 verticalVelocity(0.0f), isJumping(false), playerScaleY(1.0f), targetScaleY(1.0f),
 camera(glm::vec3(0.0f, 3.0f, 5.0f), glm::vec3(0.0f, 1.0f, 0.0f), -90.f, -20.0f), // Adjusted camera for smaller player
-hudShaderProgram(0), hudVAO(0), hudVBO(0), fontTexture(0), groundOffset(0.0f)
+hudShaderProgram(0), hudVAO(0), hudVBO(0), fontTexture(0), groundOffset(0.0f),
+waitingToStart(true), spaceWasPressed(true)
 {
 	// Load Shaders
 	shaderProgram = createShader("Shaders/basic_3d.vert", "Shaders/basic_3d.frag");
@@ -210,12 +211,31 @@ void RunnerMinigame::initializeHUD() {
 }
 
 void RunnerMinigame::update(float deltaTime) {
-	if (isGameOver) return;
+if (isGameOver) return;
+
+InputManager& input = InputManager::getInstance();
+bool spaceIsPressed = input.isKeyDown(GLFW_KEY_SPACE);
+
+// Handle "Press Space to Start" screen
+if (waitingToStart) {
+timeElapsed += deltaTime;
+
+if (!spaceIsPressed) {
+spaceWasPressed = false;
+}
+if (spaceIsPressed && !spaceWasPressed) {
+waitingToStart = false;
+spaceWasPressed = true;
+timeElapsed = 0.0f;
+survivalTimer = 0.0f;
+
+std::cout << "Game Started! Survive for " << MAX_SURVIVAL_TIME << " seconds!" << std::endl;
+}
+return;  // Don't update game logic while waiting
+}
 
     survivalTimer += deltaTime;
-	timeElapsed += deltaTime;
-
-	InputManager& input = InputManager::getInstance();
+    timeElapsed += deltaTime;
 
     bool isRightDown = input.isKeyDown(GLFW_KEY_D) || input.isKeyDown(GLFW_KEY_RIGHT);
     if (isRightDown && !wasRightPressed) {
@@ -446,6 +466,11 @@ void RunnerMinigame::render() {
 
     // Render timer HUD
     renderTimerHUD();
+
+    // Render "Press Space to Start" indicator if waiting
+    if (waitingToStart) {
+        renderStartPrompt();
+    }
 }
 
 void RunnerMinigame::renderObstacle(const Obstacle& obs) {
@@ -555,9 +580,40 @@ void RunnerMinigame::renderCube(glm::mat4 model, glm::vec3 color) {
 
     glBindVertexArray(VAO);
     glDisableVertexAttribArray(3);
-    glVertexAttrib3f(3, 1.0f, 0.0f, 0.0f);
+     glVertexAttrib3f(3, 1.0f, 0.0f, 0.0f);
 	glDrawArrays(GL_TRIANGLES, 0, 36);
-    glBindVertexArray(0);
+     glBindVertexArray(0);
+}
+
+void RunnerMinigame::renderStartPrompt() {
+    // Render a pulsing indicator above the player to signal "Press Space"
+    glUseProgram(shaderProgram);
+    
+    glm::mat4 projection = glm::perspective(glm::radians(45.0f), float(screenWidth) / float(screenHeight), 0.1f, 100.0f);
+    glm::mat4 view = camera.GetViewMatrix();
+    
+    glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "view"), 1, GL_FALSE, glm::value_ptr(view));
+    glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "projection"), 1, GL_FALSE, glm::value_ptr(projection));
+    
+    // Pulsing effect
+    float pulse = 0.5f + 0.5f * sin(timeElapsed * 4.0f);
+    float scale = 0.3f + 0.1f * pulse;
+    
+    // Floating indicator above player
+    glm::mat4 indicatorModel = glm::mat4(1.0f);
+    indicatorModel = glm::translate(indicatorModel, glm::vec3(playerX, playerY + 2.5f + 0.3f * sin(timeElapsed * 2.0f), 0.0f));
+    indicatorModel = glm::rotate(indicatorModel, timeElapsed * 2.0f, glm::vec3(0.0f, 1.0f, 0.0f));
+    indicatorModel = glm::scale(indicatorModel, glm::vec3(scale));
+    
+    // Pulsing cyan color for visibility
+    glm::vec3 indicatorColor = glm::vec3(0.0f, pulse, 1.0f);
+    renderCube(indicatorModel, indicatorColor);
+    
+    // Render a second indicator - an arrow pointing down
+    glm::mat4 arrowModel = glm::mat4(1.0f);
+    arrowModel = glm::translate(arrowModel, glm::vec3(playerX, playerY + 1.8f + 0.1f * sin(timeElapsed * 3.0f), 0.0f));
+    arrowModel = glm::scale(arrowModel, glm::vec3(0.15f, 0.4f, 0.15f));
+    renderCube(arrowModel, glm::vec3(1.0f, 1.0f, 1.0f)); // White arrow
 }
 
 bool RunnerMinigame::checkWinCondition() {
