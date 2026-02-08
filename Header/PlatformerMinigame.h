@@ -20,6 +20,7 @@ struct Platform {
     glm::vec3 size;        // width, height, depth
     PlatformType type;
     bool active;
+    bool hasCollision;     // Whether this platform has a hitbox (false = fake platform)
     
     // For moving platforms
     glm::vec3 moveStart;
@@ -75,7 +76,7 @@ private:
     Model playerModel;
 
     // Platform models
-    Model startPlatformModel;   // WinterTrees - starting platform
+    Model solidPlatformModel;   // RockPlatform - solid/regular platforms
     Model movingPlatformModel;  // Tiramisu - moving platforms
     Model goalPlatformModel;    // SciFi - final platform
 
