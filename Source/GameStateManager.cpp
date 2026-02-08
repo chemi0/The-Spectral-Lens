@@ -3,6 +3,7 @@
 #include "../Header/RunnerMinigame.h"
 #include "../Header/PlatformerMinigame.h"
 #include "../Header/HiddenMinigame.h"
+#include "../Header/ShootingMinigame.h"
 #include <iostream>
 
 void GameStateManager::update(float deltaTime) {
@@ -78,6 +79,11 @@ void GameStateManager::startMinigame(MovementType type, Entity* entity) {
 		case MovementType::Static:
 			currentMinigame = new HiddenMinigame(1920, 1080);
 			std::cout << "Hidden Minigame Started!" << std::endl;
+			break;
+			
+		case MovementType::ReverseParabolicCurve:
+			currentMinigame = new ShootingMinigame(1920, 1080);
+			std::cout << "Shooting Minigame Started!" << std::endl;
 			break;
 			
 		default:

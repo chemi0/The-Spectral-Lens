@@ -341,22 +341,22 @@ void PlatformerMinigame::initializePlatformMap() {
     moving1.movingForward = true;
     platforms.push_back(moving1);
 
-    // Platform 8 - Jump right and forward (FAKE - NO COLLISION)
+    // Platform 8 - Jump right and forward
     Platform p8;
     p8.position = glm::vec3(6.0f, 8.5f, -18.0f);
     p8.size = glm::vec3(2.0f, 0.5f, 2.0f);
     p8.type = PlatformType::SOLID;
     p8.active = true;
-    p8.hasCollision = false;  // Fake platform - player falls through
+    p8.hasCollision = true;
     platforms.push_back(p8);
 
-    // Small stepping stones (FAKE - NO COLLISION)
+    // Small stepping stone
     Platform step1;
     step1.position = glm::vec3(9.0f, 9.0f, -20.0f);
     step1.size = glm::vec3(1.5f, 0.5f, 1.5f);
     step1.type = PlatformType::SOLID;
     step1.active = true;
-    step1.hasCollision = false;  // Fake platform - player falls through
+    step1.hasCollision = true;
     platforms.push_back(step1);
 
     Platform step2;
@@ -380,13 +380,13 @@ void PlatformerMinigame::initializePlatformMap() {
     moving2.movingForward = true;
     platforms.push_back(moving2);
 
-    // Platform going back (FAKE - NO COLLISION)
+    // Platform going back
     Platform p9;
     p9.position = glm::vec3(12.0f, 11.0f, -22.0f);
     p9.size = glm::vec3(2.5f, 0.5f, 2.5f);
     p9.type = PlatformType::SOLID;
     p9.active = true;
-    p9.hasCollision = false;  // Fake platform - player falls through
+    p9.hasCollision = true;
     platforms.push_back(p9);
 
     // Platform 10 - more back
