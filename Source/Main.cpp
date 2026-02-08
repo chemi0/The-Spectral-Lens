@@ -69,7 +69,20 @@ int main()
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
+	// Enable depth testing and face culling by default (can be toggled with T and C keys)
+	glEnable(GL_DEPTH_TEST);
+	glDepthFunc(GL_LESS);
+	glEnable(GL_CULL_FACE);
+	glCullFace(GL_BACK);
+	glFrontFace(GL_CCW);
+
 	glClearColor(0.1f, 0.15f, 0.12f, 1.0f);
+
+	std::cout << "\n=== CONTROLS ===" << std::endl;
+	std::cout << "T - Toggle Depth Testing (currently: ENABLED)" << std::endl;
+	std::cout << "C - Toggle Face Culling (currently: ENABLED)" << std::endl;
+	std::cout << "ESC - Exit application" << std::endl;
+	std::cout << "================\n" << std::endl;
 
 	// FPS cap @ 75FPS
 	const double targetFrameTime = 1.0 / 75.0;

@@ -9,7 +9,9 @@
 enum class PlatformType {
     SOLID,      // Regular platform
     MOVING,     // Platform that moves back and forth
-    GOAL        // Goal item/platform
+    GOAL,       // Goal item/platform
+    START,      // Starting platform (uses WinterTrees model)
+    FINAL       // Final platform (uses SciFi model)
 };
 
 // Platform structure
@@ -18,6 +20,7 @@ struct Platform {
     glm::vec3 size;        // width, height, depth
     PlatformType type;
     bool active;
+    bool hasCollision;     // Whether this platform has a hitbox (false = fake platform)
     
     // For moving platforms
     glm::vec3 moveStart;
@@ -72,6 +75,11 @@ private:
     Camera camera;
     Model playerModel;
 
+    // Platform models
+    Model solidPlatformModel;   // RockPlatform - solid/regular platforms
+    Model movingPlatformModel;  // Tiramisu - moving platforms
+    Model goalPlatformModel;    // SciFi - final platform
+
     // HUD for "Press Space to Start" indicator
     unsigned int hudShaderProgram;
     unsigned int hudVAO, hudVBO;
@@ -93,4 +101,9 @@ private:
     // HUD rendering
     void initializeHUD();
     void renderStartPrompt();
+    void renderSkybox();
+
+    // Skybox
+    unsigned int skyboxVAO, skyboxVBO;
+    unsigned int skyboxTexture;
 };

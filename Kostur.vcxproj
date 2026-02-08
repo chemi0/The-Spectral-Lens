@@ -132,6 +132,7 @@
     <ClCompile Include="Source\PlatformerMinigame.cpp" />
     <ClCompile Include="Source\Renderer.cpp" />
     <ClCompile Include="Source\RunnerMinigame.cpp" />
+    <ClCompile Include="Source\ShootingMinigame.cpp" />
     <ClCompile Include="Source\TestMinigame.cpp" />
     <ClCompile Include="Source\Util.cpp" />
   </ItemGroup>
@@ -145,14 +146,21 @@
     <ClInclude Include="Header\PlatformerMinigame.h" />
     <ClInclude Include="Header\Renderer.h" />
     <ClInclude Include="Header\RunnerMinigame.h" />
+    <ClInclude Include="Header\ShootingMinigame.h" />
     <ClInclude Include="Header\stb_image.h" />
     <ClInclude Include="Header\TestMinigame.h" />
     <ClInclude Include="Header\Util.h" />
     <ClInclude Include="Header\InputManager.h" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="convert_fbx.py" />
     <None Include="glsl Shaders\scene.frag" />
     <None Include="packages.config" />
+    <None Include="Resources\HidingGameHouse\Low_poly_house.mtl" />
+    <None Include="Resources\HidingGameTree2\tree2.mtl" />
+    <None Include="Resources\ScifiPlatform\LI Hover Platform LP.mtl" />
+    <None Include="Resources\TiramisuPlatform\Tiramisu_LOD_0.mtl" />
+    <None Include="Resources\WinterTreesStartingPlatform\Winter_trees.mtl" />
     <None Include="Shaders\scene.frag" />
     <None Include="Shaders\scene.vert" />
   </ItemGroup>

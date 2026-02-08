@@ -96,6 +96,108 @@ PlatformerMinigame::PlatformerMinigame(int width, int height)
     playerModel.opacityTex = playerModel.loadTexture("Resources/RunnerCharacter/cat_Opacity.png");
     playerModel.normalMapTex = playerModel.loadTexture("Resources/RunnerCharacter/cat_Normal.png");
 
+    // Load solid platform model (RockPlatform - used for regular SOLID platforms)
+    if (!solidPlatformModel.loadModel("Resources/RockPlatform/namaqualand_boulder_05_1k.obj")) {
+        std::cerr << "Failed to load solid platform model!" << std::endl;
+    }
+    solidPlatformModel.diffuseTex = solidPlatformModel.loadTexture("Resources/RockPlatform/namaqualand_boulder_05.png");
+    if (solidPlatformModel.diffuseTex == 0) std::cerr << "Failed to load rock diffuse texture!" << std::endl;
+    
+    solidPlatformModel.normalMapTex = solidPlatformModel.loadTexture("Resources/RockPlatform/normalMap1.png");
+    if (solidPlatformModel.normalMapTex == 0) std::cerr << "Failed to load rock normal texture!" << std::endl;
+    
+    solidPlatformModel.roughnessTex = solidPlatformModel.loadTexture("Resources/RockPlatform/metalnessMap1.png");
+    if (solidPlatformModel.roughnessTex == 0) std::cerr << "Failed to load rock metalness texture!" << std::endl;
+
+    // Load moving platform model (Tiramisu)
+    if (!movingPlatformModel.loadModel("Resources/TiramisuPlatform/Tiramisu_LOD_0.obj")) {
+        std::cerr << "Failed to load moving platform model!" << std::endl;
+    }
+    movingPlatformModel.diffuseTex = movingPlatformModel.loadTexture("Resources/TiramisuPlatform/Tiramisu_BaseColor.png");
+    movingPlatformModel.roughnessTex = movingPlatformModel.loadTexture("Resources/TiramisuPlatform/Tiramisu_Roughness.png");
+    movingPlatformModel.aoTex = movingPlatformModel.loadTexture("Resources/TiramisuPlatform/Tiramisu_AmbientOcclusion.png");
+    movingPlatformModel.normalMapTex = movingPlatformModel.loadTexture("Resources/TiramisuPlatform/Tiramisu_NormalOpenGL.png");
+
+    // Load goal/final platform model (SciFi)
+    if (!goalPlatformModel.loadModel("Resources/ScifiPlatform/LI Hover Platform LP.obj")) {
+        std::cerr << "Failed to load goal platform model!" << std::endl;
+    }
+    goalPlatformModel.diffuseTex = goalPlatformModel.loadTexture("Resources/ScifiPlatform/Grunge_LI Hover Platform_albedo.jpg");
+    goalPlatformModel.roughnessTex = goalPlatformModel.loadTexture("Resources/ScifiPlatform/Grunge_LI Hover Platform_roughness.jpg");
+    goalPlatformModel.normalMapTex = goalPlatformModel.loadTexture("Resources/ScifiPlatform/Grunge_LI Hover Platform_normal.jpg");
+    goalPlatformModel.aoTex = goalPlatformModel.loadTexture("Resources/ScifiPlatform/Grunge_LI Hover Platform_ao.jpg");
+
+    // Load skybox texture
+    skyboxTexture = loadImageToTexture("Resources/SkyboxCubemaps/PlatformerCubemap.png");
+    if (skyboxTexture == 0) {
+        std::cerr << "Failed to load platformer skybox texture!" << std::endl;
+    }
+
+    // Create skybox cube VAO with position and UV coordinates
+    // Cross-format cubemap UV mapping for center horizontal band
+    float skyboxVertices[] = {
+        // Back face
+        -1.0f,  1.0f, -1.0f,   0.25f, 0.3334f,
+        -1.0f, -1.0f, -1.0f,   0.25f, 0.6666f,
+         1.0f, -1.0f, -1.0f,   0.50f, 0.6666f,
+         1.0f, -1.0f, -1.0f,   0.50f, 0.6666f,
+         1.0f,  1.0f, -1.0f,   0.50f, 0.3334f,
+        -1.0f,  1.0f, -1.0f,   0.25f, 0.3334f,
+
+        // Left face
+        -1.0f, -1.0f,  1.0f,   0.00f, 0.6666f,
+        -1.0f, -1.0f, -1.0f,   0.25f, 0.6666f,
+        -1.0f,  1.0f, -1.0f,   0.25f, 0.3334f,
+        -1.0f,  1.0f, -1.0f,   0.25f, 0.3334f,
+        -1.0f,  1.0f,  1.0f,   0.00f, 0.3334f,
+        -1.0f, -1.0f,  1.0f,   0.00f, 0.6666f,
+
+        // Right face
+         1.0f, -1.0f, -1.0f,   0.50f, 0.6666f,
+         1.0f, -1.0f,  1.0f,   0.75f, 0.6666f,
+         1.0f,  1.0f,  1.0f,   0.75f, 0.3334f,
+         1.0f,  1.0f,  1.0f,   0.75f, 0.3334f,
+         1.0f,  1.0f, -1.0f,   0.50f, 0.3334f,
+         1.0f, -1.0f, -1.0f,   0.50f, 0.6666f,
+
+        // Front face
+        -1.0f, -1.0f,  1.0f,   1.00f, 0.6666f,
+        -1.0f,  1.0f,  1.0f,   1.00f, 0.3334f,
+         1.0f,  1.0f,  1.0f,   0.75f, 0.3334f,
+         1.0f,  1.0f,  1.0f,   0.75f, 0.3334f,
+         1.0f, -1.0f,  1.0f,   0.75f, 0.6666f,
+        -1.0f, -1.0f,  1.0f,   1.00f, 0.6666f,
+
+        // Top face
+        -1.0f,  1.0f, -1.0f,   0.25f, 0.3334f,
+         1.0f,  1.0f, -1.0f,   0.50f, 0.3334f,
+         1.0f,  1.0f,  1.0f,   0.50f, 0.0000f,
+         1.0f,  1.0f,  1.0f,   0.50f, 0.0000f,
+        -1.0f,  1.0f,  1.0f,   0.25f, 0.0000f,
+        -1.0f,  1.0f, -1.0f,   0.25f, 0.3334f,
+
+        // Bottom face
+        -1.0f, -1.0f, -1.0f,   0.25f, 0.6666f,
+        -1.0f, -1.0f,  1.0f,   0.25f, 1.0000f,
+         1.0f, -1.0f, -1.0f,   0.50f, 0.6666f,
+         1.0f, -1.0f, -1.0f,   0.50f, 0.6666f,
+        -1.0f, -1.0f,  1.0f,   0.25f, 1.0000f,
+         1.0f, -1.0f,  1.0f,   0.50f, 1.0000f
+    };
+
+    glGenVertexArrays(1, &skyboxVAO);
+    glGenBuffers(1, &skyboxVBO);
+    glBindVertexArray(skyboxVAO);
+    glBindBuffer(GL_ARRAY_BUFFER, skyboxVBO);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(skyboxVertices), skyboxVertices, GL_STATIC_DRAW);
+
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
+    glEnableVertexAttribArray(0);
+    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float)));
+    glEnableVertexAttribArray(1);
+
+    glBindVertexArray(0);
+
     // Initialize the level
     initializePlatformMap();
     
@@ -117,6 +219,11 @@ PlatformerMinigame::~PlatformerMinigame() {
     if (hudVBO != 0) glDeleteBuffers(1, &hudVBO);
     if (hudShaderProgram != 0) glDeleteProgram(hudShaderProgram);
     if (fontTexture != 0) glDeleteTextures(1, &fontTexture);
+
+    // Clean up skybox
+    if (skyboxVAO != 0) glDeleteVertexArrays(1, &skyboxVAO);
+    if (skyboxVBO != 0) glDeleteBuffers(1, &skyboxVBO);
+    if (skyboxTexture != 0) glDeleteTextures(1, &skyboxTexture);
 }
 
 void PlatformerMinigame::initializeHUD() {
@@ -158,12 +265,13 @@ void PlatformerMinigame::initializeHUD() {
 void PlatformerMinigame::initializePlatformMap() {
     platforms.clear();
 
-    // Starting platform (larger, safe area)
+    // Starting platform (larger, safe area - uses WinterTrees model)
     Platform start;
     start.position = glm::vec3(0.0f, 0.0f, 0.0f);
-    start.size = glm::vec3(5.0f, 0.5f, 5.0f);
-    start.type = PlatformType::SOLID;
+    start.size = glm::vec3(8.0f, 0.5f, 8.0f);  // Larger starting area
+    start.type = PlatformType::START;
     start.active = true;
+    start.hasCollision = true;
     platforms.push_back(start);
 
     // Platform 2 - Small jump right
@@ -172,6 +280,7 @@ void PlatformerMinigame::initializePlatformMap() {
     p2.size = glm::vec3(2.5f, 0.5f, 2.5f);
     p2.type = PlatformType::SOLID;
     p2.active = true;
+    p2.hasCollision = true;
     platforms.push_back(p2);
 
     // Platform 3 - Continue right, higher
@@ -180,6 +289,7 @@ void PlatformerMinigame::initializePlatformMap() {
     p3.size = glm::vec3(2.5f, 0.5f, 2.5f);
     p3.type = PlatformType::SOLID;
     p3.active = true;
+    p3.hasCollision = true;
     platforms.push_back(p3);
 
     // Platform 4 - Jump forward (use W key)
@@ -188,6 +298,7 @@ void PlatformerMinigame::initializePlatformMap() {
     p4.size = glm::vec3(2.5f, 0.5f, 2.5f);
     p4.type = PlatformType::SOLID;
     p4.active = true;
+    p4.hasCollision = true;
     platforms.push_back(p4);
 
     // Platform 5 - Continue forward
@@ -196,6 +307,7 @@ void PlatformerMinigame::initializePlatformMap() {
     p5.size = glm::vec3(2.0f, 0.5f, 2.0f);
     p5.type = PlatformType::SOLID;
     p5.active = true;
+    p5.hasCollision = true;
     platforms.push_back(p5);
 
     // Platform 6 - Jump left
@@ -204,6 +316,7 @@ void PlatformerMinigame::initializePlatformMap() {
     p6.size = glm::vec3(2.5f, 0.5f, 2.5f);
     p6.type = PlatformType::SOLID;
     p6.active = true;
+    p6.hasCollision = true;
     platforms.push_back(p6);
 
     // Platform 7 - Continue left and back
@@ -212,6 +325,7 @@ void PlatformerMinigame::initializePlatformMap() {
     p7.size = glm::vec3(2.5f, 0.5f, 2.5f);
     p7.type = PlatformType::SOLID;
     p7.active = true;
+    p7.hasCollision = true;
     platforms.push_back(p7);
 
     // Moving platform - moves in Z axis
@@ -220,6 +334,7 @@ void PlatformerMinigame::initializePlatformMap() {
     moving1.size = glm::vec3(2.5f, 0.5f, 2.5f);
     moving1.type = PlatformType::MOVING;
     moving1.active = true;
+    moving1.hasCollision = true;
     moving1.moveStart = glm::vec3(1.0f, 7.5f, -12.0f);
     moving1.moveEnd = glm::vec3(1.0f, 7.5f, -18.0f);
     moving1.moveSpeed = 3.0f;
@@ -232,14 +347,16 @@ void PlatformerMinigame::initializePlatformMap() {
     p8.size = glm::vec3(2.0f, 0.5f, 2.0f);
     p8.type = PlatformType::SOLID;
     p8.active = true;
+    p8.hasCollision = true;
     platforms.push_back(p8);
 
-    // Small stepping stones
+    // Small stepping stone
     Platform step1;
     step1.position = glm::vec3(9.0f, 9.0f, -20.0f);
     step1.size = glm::vec3(1.5f, 0.5f, 1.5f);
     step1.type = PlatformType::SOLID;
     step1.active = true;
+    step1.hasCollision = true;
     platforms.push_back(step1);
 
     Platform step2;
@@ -247,6 +364,7 @@ void PlatformerMinigame::initializePlatformMap() {
     step2.size = glm::vec3(1.5f, 0.5f, 1.5f);
     step2.type = PlatformType::SOLID;
     step2.active = true;
+    step2.hasCollision = true;
     platforms.push_back(step2);
 
     // Anotehr moving paltform
@@ -255,6 +373,7 @@ void PlatformerMinigame::initializePlatformMap() {
     moving2.size = glm::vec3(2.5f, 0.5f, 2.5f);
     moving2.type = PlatformType::MOVING;
     moving2.active = true;
+    moving2.hasCollision = true;
     moving2.moveStart = glm::vec3(3.0f, 10.0f, -26.0f);
     moving2.moveEnd = glm::vec3(10.0f, 10.0f, -26.0f);
     moving2.moveSpeed = 2.5f;
@@ -267,6 +386,7 @@ void PlatformerMinigame::initializePlatformMap() {
     p9.size = glm::vec3(2.5f, 0.5f, 2.5f);
     p9.type = PlatformType::SOLID;
     p9.active = true;
+    p9.hasCollision = true;
     platforms.push_back(p9);
 
     // Platform 10 - more back
@@ -275,6 +395,7 @@ void PlatformerMinigame::initializePlatformMap() {
     p10.size = glm::vec3(2.0f, 0.5f, 2.0f);
     p10.type = PlatformType::SOLID;
     p10.active = true;
+    p10.hasCollision = true;
     platforms.push_back(p10);
 
     // Platform 11 - Jump left to final
@@ -283,18 +404,20 @@ void PlatformerMinigame::initializePlatformMap() {
     p11.size = glm::vec3(2.5f, 0.5f, 2.5f);
     p11.type = PlatformType::SOLID;
     p11.active = true;
+    p11.hasCollision = true;
     platforms.push_back(p11);
 
-    // FInal platform with the goal
+    // Final platform with the goal (uses SciFi model)
     Platform finalPlat;
-    finalPlat.position = glm::vec3(2.0f, 14.0f, -15.0f);
-    finalPlat.size = glm::vec3(4.0f, 0.5f, 4.0f);
-    finalPlat.type = PlatformType::SOLID;
+    finalPlat.position = glm::vec3(2.0f, 15.5f, -15.0f);  // Raised higher
+    finalPlat.size = glm::vec3(5.0f, 0.5f, 5.0f);  // Larger final platform
+    finalPlat.type = PlatformType::FINAL;
     finalPlat.active = true;
+    finalPlat.hasCollision = true;
     platforms.push_back(finalPlat);
 
     // Goal position (floating above final platform)
-    goalPosition = glm::vec3(2.0f, 16.0f, -15.0f);
+    goalPosition = glm::vec3(2.0f, 17.5f, -15.0f);  // Adjusted to match new platform height
 }
 
 void PlatformerMinigame::update(float deltaTime) {
@@ -427,6 +550,11 @@ void PlatformerMinigame::checkCollisions() {
     isGrounded = false;
 
     for (const auto& platform : platforms) {
+        // Skip platforms without collision (fake platforms)
+        if (!platform.hasCollision) {
+            continue;
+        }
+        
         glm::vec3 normal;
         if (checkPlatformCollision(platform, normal)) {
             // If collision from above (landing on platform)
@@ -460,26 +588,54 @@ bool PlatformerMinigame::checkPlatformCollision(const Platform& platform, glm::v
 }
 
 void PlatformerMinigame::render() {
-    glUseProgram(shaderProgram);
+// Render skybox first (behind everything)
+renderSkybox();
 
-    glm::mat4 projection = glm::perspective(glm::radians(45.0f), (float)screenWidth / (float)screenHeight, 0.1f, 100.0f);
-    glm::mat4 view = camera.GetViewMatrix();
+// Re-bind shader program after skybox
+glUseProgram(shaderProgram);
 
-    glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "view"), 1, GL_FALSE, glm::value_ptr(view));
-    glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "projection"), 1, GL_FALSE, glm::value_ptr(projection));
-    glUniform3fv(glGetUniformLocation(shaderProgram, "cameraPos"), 1, glm::value_ptr(camera.Position));
+// Ensure proper OpenGL state after skybox
+glEnable(GL_DEPTH_TEST);
+glDepthFunc(GL_LESS);
+glDepthMask(GL_TRUE);
+glEnable(GL_CULL_FACE);
+glCullFace(GL_BACK);
 
-    // Render platforms
-    for (const auto& platform : platforms) {
-        renderPlatform(platform);
-    }
+glm::mat4 projection = glm::perspective(glm::radians(45.0f), (float)screenWidth / (float)screenHeight, 0.1f, 100.0f);
+glm::mat4 view = camera.GetViewMatrix();
 
-    // Render goal (golden cube)
-    glm::mat4 goalModel = glm::mat4(1.0f);
-    goalModel = glm::translate(goalModel, goalPosition);
-    goalModel = glm::rotate(goalModel, timeElapsed, glm::vec3(0.0f, 1.0f, 0.0f));
-    goalModel = glm::scale(goalModel, glm::vec3(1.0f));
-    renderCube(goalModel, glm::vec3(1.0f, 0.84f, 0.0f)); // Gold color
+glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "view"), 1, GL_FALSE, glm::value_ptr(view));
+glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "projection"), 1, GL_FALSE, glm::value_ptr(projection));
+glUniform3fv(glGetUniformLocation(shaderProgram, "cameraPos"), 1, glm::value_ptr(camera.Position));
+
+// Set up directional light (sun from above and side)
+glm::vec3 lightDir = glm::normalize(glm::vec3(-0.5f, -1.0f, -0.3f));
+glm::vec3 lightColor = glm::vec3(1.0f, 0.95f, 0.9f);  // Warm daylight
+glm::vec3 ambientLight = glm::vec3(0.4f, 0.4f, 0.45f);  // Brighter ambient
+    
+glUniform3fv(glGetUniformLocation(shaderProgram, "lightDir"), 1, glm::value_ptr(lightDir));
+glUniform3fv(glGetUniformLocation(shaderProgram, "lightColor"), 1, glm::value_ptr(lightColor));
+glUniform3fv(glGetUniformLocation(shaderProgram, "ambientLight"), 1, glm::value_ptr(ambientLight));
+
+// Disable fog by using density=0 (useFog=0 triggers shader's default dark fog which blackens everything)
+glUniform1i(glGetUniformLocation(shaderProgram, "useFog"), 1);
+glUniform1f(glGetUniformLocation(shaderProgram, "fogDensity"), 0.0f);
+glUniform3f(glGetUniformLocation(shaderProgram, "fogColor"), 0.0f, 0.0f, 0.0f);
+
+// Set uColor to white for textured model rendering (shader multiplies texture by uColor)
+glUniform3f(glGetUniformLocation(shaderProgram, "uColor"), 1.0f, 1.0f, 1.0f);
+
+// Render platforms
+for (const auto& platform : platforms) {
+    renderPlatform(platform);
+}
+
+// Render goal (golden cube)
+glm::mat4 goalModel = glm::mat4(1.0f);
+goalModel = glm::translate(goalModel, goalPosition);
+goalModel = glm::rotate(goalModel, timeElapsed, glm::vec3(0.0f, 1.0f, 0.0f));
+goalModel = glm::scale(goalModel, glm::vec3(1.0f));
+renderCube(goalModel, glm::vec3(1.0f, 0.84f, 0.0f)); // Gold color
 
     // Render player with rotation
     glm::mat4 playerMatrix = glm::mat4(1.0f);
@@ -489,7 +645,8 @@ void PlatformerMinigame::render() {
     playerMatrix = glm::scale(playerMatrix, glm::vec3(0.005f));
     glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "model"), 1, GL_FALSE, glm::value_ptr(playerMatrix));
     
-    // Set texture uniforms
+    // Set texture uniforms and white color for player
+    glUniform3f(glGetUniformLocation(shaderProgram, "uColor"), 1.0f, 1.0f, 1.0f);  // White tint for texture
     glUniform1i(glGetUniformLocation(shaderProgram, "useTexture"), 1);
     glUniform1i(glGetUniformLocation(shaderProgram, "texture_diffuse"), 0);
     glUniform1i(glGetUniformLocation(shaderProgram, "texture_emission"), 1);
@@ -540,16 +697,52 @@ void PlatformerMinigame::renderStartPrompt() {
 void PlatformerMinigame::renderPlatform(const Platform& platform) {
     glm::mat4 model = glm::mat4(1.0f);
     model = glm::translate(model, platform.position);
-    model = glm::scale(model, platform.size);
 
-    glm::vec3 color;
-    if (platform.type == PlatformType::MOVING) {
-        color = glm::vec3(0.5f, 0.5f, 1.0f); // Blue for moving
+    if (platform.type == PlatformType::FINAL) {
+        // SciFi goal platform - larger scale
+        glm::mat4 modelMatrix = model;
+        modelMatrix = glm::scale(modelMatrix, glm::vec3(0.45f, 0.05f, 0.45f));
+
+        glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "model"), 1, GL_FALSE, glm::value_ptr(modelMatrix));
+        glUniform3f(glGetUniformLocation(shaderProgram, "uColor"), 1.0f, 1.0f, 1.0f);  // White tint for texture
+        glUniform1i(glGetUniformLocation(shaderProgram, "useTexture"), 1);
+        glUniform1i(glGetUniformLocation(shaderProgram, "texture_diffuse"), 0);
+        glUniform1i(glGetUniformLocation(shaderProgram, "texture_emission"), 1);
+        glUniform1i(glGetUniformLocation(shaderProgram, "texture_roughness"), 2);
+        glUniform1i(glGetUniformLocation(shaderProgram, "texture_ao"), 3);
+        glUniform1i(glGetUniformLocation(shaderProgram, "texture_opacity"), 4);
+        glUniform1i(glGetUniformLocation(shaderProgram, "texture_normal"), 5);
+        
+        goalPlatformModel.render();
+
     } else {
-        color = glm::vec3(0.3f, 0.7f, 0.3f); // Green for solid
-    }
+        // All other platforms use Tiramisu model (START, SOLID, MOVING)
+        glm::mat4 modelMatrix = model;
+        
+        // Adjust scale based on platform type
+        if (platform.type == PlatformType::START) {
+            // Starting platform - slightly larger
+            modelMatrix = glm::scale(modelMatrix, glm::vec3(0.4f, 0.05f, 0.4f));
+        } else if (platform.type == PlatformType::MOVING) {
+            // Moving platforms - medium scale
+            modelMatrix = glm::scale(modelMatrix, glm::vec3(0.35f, 0.05f, 0.35f));
+        } else {
+            // SOLID platforms - slightly smaller than START
+            modelMatrix = glm::scale(modelMatrix, glm::vec3(0.3f, 0.05f, 0.3f));
+        }
 
-    renderCube(model, color);
+        glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "model"), 1, GL_FALSE, glm::value_ptr(modelMatrix));
+        glUniform3f(glGetUniformLocation(shaderProgram, "uColor"), 1.0f, 1.0f, 1.0f);  // White tint for texture
+        glUniform1i(glGetUniformLocation(shaderProgram, "useTexture"), 1);
+        glUniform1i(glGetUniformLocation(shaderProgram, "texture_diffuse"), 0);
+        glUniform1i(glGetUniformLocation(shaderProgram, "texture_emission"), 1);
+        glUniform1i(glGetUniformLocation(shaderProgram, "texture_roughness"), 2);
+        glUniform1i(glGetUniformLocation(shaderProgram, "texture_ao"), 3);
+        glUniform1i(glGetUniformLocation(shaderProgram, "texture_opacity"), 4);
+        glUniform1i(glGetUniformLocation(shaderProgram, "texture_normal"), 5);
+        
+        movingPlatformModel.render();
+    }
 }
 
 void PlatformerMinigame::renderCube(glm::mat4 model, glm::vec3 color) {
@@ -561,6 +754,59 @@ void PlatformerMinigame::renderCube(glm::mat4 model, glm::vec3 color) {
     glDisableVertexAttribArray(3);
     glVertexAttrib3f(3, 1.0f, 0.0f, 0.0f);
     glDrawArrays(GL_TRIANGLES, 0, 36);
+    glBindVertexArray(0);  // Unbind VAO after rendering
+}
+
+void PlatformerMinigame::renderSkybox() {
+    glDepthFunc(GL_LEQUAL);
+    glDepthMask(GL_FALSE);
+    glDisable(GL_CULL_FACE);
+
+    glUseProgram(shaderProgram);
+
+    // Remove translation from view matrix (skybox follows camera rotation only)
+    glm::mat4 view = glm::mat4(glm::mat3(camera.GetViewMatrix()));
+    glm::mat4 projection = glm::perspective(glm::radians(45.0f), (float)screenWidth / (float)screenHeight, 0.1f, 100.0f);
+
+    glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "view"), 1, GL_FALSE, glm::value_ptr(view));
+    glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "projection"), 1, GL_FALSE, glm::value_ptr(projection));
+
+    glm::mat4 model = glm::mat4(1.0f);
+    glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "model"), 1, GL_FALSE, glm::value_ptr(model));
+
+    // Set camera position to origin (matches stripped view matrix)
+    glm::vec3 origin(0.0f);
+    glUniform3fv(glGetUniformLocation(shaderProgram, "cameraPos"), 1, glm::value_ptr(origin));
+
+    // Use fog with zero density to bypass the default fog in the else branch
+    glUniform1i(glGetUniformLocation(shaderProgram, "useFog"), 1);
+    glUniform1f(glGetUniformLocation(shaderProgram, "fogDensity"), 0.0f);
+    glUniform3f(glGetUniformLocation(shaderProgram, "fogColor"), 0.0f, 0.0f, 0.0f);
+
+    // Texture mode with white tint (uColor multiplies texture in shader)
+    glUniform1i(glGetUniformLocation(shaderProgram, "useTexture"), 1);
+    glUniform3f(glGetUniformLocation(shaderProgram, "uColor"), 1.0f, 1.0f, 1.0f);
+
+    // Bind skybox texture
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, skyboxTexture);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glUniform1i(glGetUniformLocation(shaderProgram, "texture_diffuse"), 0);
+
+    // Render skybox cube with default normal/tangent attributes
+    glBindVertexArray(skyboxVAO);
+    glVertexAttrib3f(2, 0.0f, 1.0f, 0.0f);
+    glVertexAttrib3f(3, 1.0f, 0.0f, 0.0f);
+    glDrawArrays(GL_TRIANGLES, 0, 36);
+    glBindVertexArray(0);
+
+    // Restore state
+    glDepthMask(GL_TRUE);
+    glDepthFunc(GL_LESS);
+    glEnable(GL_CULL_FACE);
 }
 
 bool PlatformerMinigame::checkWinCondition() {

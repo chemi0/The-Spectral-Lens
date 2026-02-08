@@ -21,6 +21,10 @@ public:
 
 	bool keys[1024]; // Array to store all key states
 
+	// Rendering toggles (global)
+	bool depthTestEnabled = true;   // T key to toggle
+	bool faceCullingEnabled = true; // C key to toggle
+
 	// Helper function to check any key
 	bool isKeyDown(int key) {
 		if (key >= 0 && key < 1024) return keys[key];

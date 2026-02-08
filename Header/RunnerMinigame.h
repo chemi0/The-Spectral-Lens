@@ -41,6 +41,8 @@ private:
 
 	// Game logic
 	float timeElapsed;
+	bool waitingToStart;    // Freeze game until player presses space
+	bool spaceWasPressed;   // Track space key state for edge detection
 
 	// Horizontal Movement (Lane Switching)
 	int currentLane;
@@ -64,12 +66,30 @@ private:
 	float gameSpeed;
 	float survivalTimer;
 	bool isGameOver, playerWon;
+	float groundOffset;  // Ground scroll offset for movement illusion
+
+	// HUD resources
+	unsigned int hudShaderProgram;
+	unsigned int hudVAO, hudVBO;
+	unsigned int fontTexture;
 
 	// Helper functions
 	void spawnObstacle();
 	void resetGame();
 	void renderCube(glm::mat4 model, glm::vec3 color);
+	void initializeHUD();
+	void renderTimerHUD();
+	void renderObstacle(const Obstacle& obs);
+	void renderStartPrompt();  // Start screen prompt
+	void renderSkybox();  // Skybox rendering
 
+	// Models
 	Model playerModel;
+	Model obstacleModel;
+	Model groundModel;  // Textured ground platform
+
+	// Skybox
+	unsigned int skyboxVAO, skyboxVBO;
+	unsigned int skyboxTexture;
 
 };

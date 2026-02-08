@@ -24,6 +24,7 @@ struct SceneObject {
     glm::vec3 rotation;  // Euler angles in degrees
     glm::vec3 color;
     ObjectType type;
+    bool hasCollision = true;  // Whether this object blocks player movement
 };
 
 class HiddenMinigame : public Minigame {
@@ -67,6 +68,7 @@ private:
     const float MOVE_SPEED = 5.0f;
     const float MOUSE_SENSITIVITY = 0.1f;
     const float PLAYER_HEIGHT = 1.7f;
+    const float PLAYER_RADIUS = 0.4f;  // Collision radius for player
 
     // Fog settings
     const float FOG_DENSITY_NORMAL = 0.15f;   // Heavy fog normally
@@ -85,7 +87,22 @@ private:
     float catFindRadius;
     bool catFound;
 
-    // Scene objects
+    // Level models
+    Model houseModel;
+    Model treeModel;
+    Model groundModel;  // Textured floor (rock wall platform)
+    glm::vec3 housePosition;
+    float houseScale;
+
+    // Tree positions and scales for rendering
+    struct TreeInstance {
+        glm::vec3 position;
+        float scale;
+        float rotationY;  // Random Y rotation for variety
+    };
+    std::vector<TreeInstance> trees;
+
+    // Scene objects (for collision boxes)
     std::vector<SceneObject> sceneObjects;
 
     // Map boundaries
@@ -93,20 +110,20 @@ private:
 
     // Setup functions
     void initializeScene();
-    void createHouse(glm::vec3 position);
-    void createTree(glm::vec3 position, float scale = 1.0f);
-    void createRock(glm::vec3 position, float scale = 1.0f);
-    void createFence(glm::vec3 start, glm::vec3 end);
     void placeCatRandomly();
 
     // Rendering functions
     void renderObject(const SceneObject& obj);
     void renderCube(glm::mat4 model, glm::vec3 color);
     void renderCat();
+    void renderHouse();
+    void renderTrees();
+    void renderGround();
     void renderHUD();
 
     // Collision detection
     bool checkCollision(glm::vec3 newPos);
+    bool checkAABBCollision(glm::vec3 playerPos, float playerRadius, const SceneObject& obj);
     
     // Input handling
     void processMouseMovement(float xoffset, float yoffset);
