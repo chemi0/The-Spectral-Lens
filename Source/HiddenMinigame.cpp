@@ -451,10 +451,20 @@ void HiddenMinigame::render() {
 }
 
 void HiddenMinigame::renderGround() {
+    // Temporarily disable face culling for ground (it's a flat plane viewed from above)
+    // This ensures ground is always visible regardless of global face culling toggle
+    GLboolean wasCullingEnabled = glIsEnabled(GL_CULL_FACE);
+    glDisable(GL_CULL_FACE);
+    
     glm::mat4 model = glm::mat4(1.0f);
     model = glm::translate(model, glm::vec3(0.0f, -0.25f, 0.0f));
     model = glm::scale(model, glm::vec3(MAP_SIZE * 2, 0.5f, MAP_SIZE * 2));
     renderCube(model, glm::vec3(0.12f, 0.22f, 0.08f));
+    
+    // Restore face culling state
+    if (wasCullingEnabled) {
+        glEnable(GL_CULL_FACE);
+    }
 }
 
 void HiddenMinigame::renderHouse() {
@@ -477,6 +487,10 @@ void HiddenMinigame::renderHouse() {
 }
 
 void HiddenMinigame::renderTrees() {
+    // Temporarily disable face culling for trees (leaves are flat planes that need double-sided rendering)
+    GLboolean wasCullingEnabled = glIsEnabled(GL_CULL_FACE);
+    glDisable(GL_CULL_FACE);
+    
     for (const auto& tree : trees) {
         glm::mat4 model = glm::mat4(1.0f);
         model = glm::translate(model, tree.position);
@@ -495,6 +509,11 @@ void HiddenMinigame::renderTrees() {
         glUniform1i(glGetUniformLocation(shaderProgram, "texture_normal"), 5);
 
         treeModel.render();
+    }
+    
+    // Restore face culling state
+    if (wasCullingEnabled) {
+        glEnable(GL_CULL_FACE);
     }
 }
 

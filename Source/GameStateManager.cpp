@@ -34,8 +34,19 @@ void GameStateManager::render(const InputManager& input) {
 	}
 	else if (currentState == GameState::MINIGAME_3D) {
 		
-		// Enable Depth Test for 3D
-		glEnable(GL_DEPTH_TEST);
+		// Depth Tesh (toggled ON/OFF by pressing T)
+		if (input.depthTestEnabled) {
+			glEnable(GL_DEPTH_TEST);
+		} else {
+			glDisable(GL_DEPTH_TEST);
+		}
+		
+		// Face Culling (toggled ON/OFF by pressing C)
+		if (input.faceCullingEnabled) {
+			glEnable(GL_CULL_FACE);
+		} else {
+			glDisable(GL_CULL_FACE);
+		}
 		
 		// Clear buffers (Color + Depth)
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);

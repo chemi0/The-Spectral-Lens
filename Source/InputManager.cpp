@@ -71,6 +71,35 @@ void InputManager::keyCallBack(GLFWwindow* window, int key, int scancode, int ac
     if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS) {
         glfwSetWindowShouldClose(window, true);
     }
+
+    // Toggle Depth Testing (T key)
+    if (key == GLFW_KEY_T && action == GLFW_PRESS) {
+        InputManager& input = getInstance();
+        input.depthTestEnabled = !input.depthTestEnabled;
+        
+        if (input.depthTestEnabled) {
+            glEnable(GL_DEPTH_TEST);
+            std::cout << "Depth Testing: ENABLED" << std::endl;
+        } else {
+            glDisable(GL_DEPTH_TEST);
+            std::cout << "Depth Testing: DISABLED" << std::endl;
+        }
+    }
+
+    // Toggle Face Culling (C key)
+    if (key == GLFW_KEY_C && action == GLFW_PRESS) {
+        InputManager& input = getInstance();
+        input.faceCullingEnabled = !input.faceCullingEnabled;
+        
+        if (input.faceCullingEnabled) {
+            glEnable(GL_CULL_FACE);
+            std::cout << "Face Culling: ENABLED" << std::endl;
+        } else {
+            glDisable(GL_CULL_FACE);
+            std::cout << "Face Culling: DISABLED" << std::endl;
+        }
+    }
+
     if (key == GLFW_KEY_E && action == GLFW_PRESS) {
         InputManager::getInstance().findKeyPressed = true;
     }
