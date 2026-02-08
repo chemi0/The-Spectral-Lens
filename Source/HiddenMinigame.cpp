@@ -108,6 +108,19 @@ HiddenMinigame::HiddenMinigame(int width, int height)
     treeModel.normalMapTex = treeModel.loadTexture("Resources/HidingGameTree2/tree2Normal.png");
     treeModel.roughnessTex = treeModel.loadTexture("Resources/HidingGameTree2/tree2Roughness.png");
 
+    // Load ground platform model (textured rock wall - matches runner game aesthetic)
+    if (!groundModel.loadModel("Resources/PlatformTexture/rock_wall_16_1k.obj")) {
+        std::cerr << "Failed to load ground model for HiddenMinigame!" << std::endl;
+    }
+    groundModel.diffuseTex = groundModel.loadTexture("Resources/PlatformTexture/diffWall.png");
+    if (groundModel.diffuseTex == 0) std::cerr << "Failed to load ground diffuse texture!" << std::endl;
+    
+    groundModel.normalMapTex = groundModel.loadTexture("Resources/PlatformTexture/normalWall.png");
+    if (groundModel.normalMapTex == 0) std::cerr << "Failed to load ground normal texture!" << std::endl;
+    
+    groundModel.aoTex = groundModel.loadTexture("Resources/PlatformTexture/armWall.png");
+    if (groundModel.aoTex == 0) std::cerr << "Failed to load ground AO texture!" << std::endl;
+
     initializeScene();
 
     std::cout << "Hidden Minigame Initialized!" << std::endl;
@@ -459,7 +472,20 @@ void HiddenMinigame::renderGround() {
     glm::mat4 model = glm::mat4(1.0f);
     model = glm::translate(model, glm::vec3(0.0f, -0.25f, 0.0f));
     model = glm::scale(model, glm::vec3(MAP_SIZE * 2, 0.5f, MAP_SIZE * 2));
-    renderCube(model, glm::vec3(0.12f, 0.22f, 0.08f));
+    
+    glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "model"), 1, GL_FALSE, glm::value_ptr(model));
+
+    // Render textured ground model (rock wall platform)
+    glUniform1i(glGetUniformLocation(shaderProgram, "useTexture"), 1);
+    glUniform3f(glGetUniformLocation(shaderProgram, "uColor"), 1.0f, 1.0f, 1.0f);  // White tint for texture
+    glUniform1i(glGetUniformLocation(shaderProgram, "texture_diffuse"), 0);
+    glUniform1i(glGetUniformLocation(shaderProgram, "texture_emission"), 1);
+    glUniform1i(glGetUniformLocation(shaderProgram, "texture_roughness"), 2);
+    glUniform1i(glGetUniformLocation(shaderProgram, "texture_ao"), 3);
+    glUniform1i(glGetUniformLocation(shaderProgram, "texture_opacity"), 4);
+    glUniform1i(glGetUniformLocation(shaderProgram, "texture_normal"), 5);
+    
+    groundModel.render();
     
     // Restore face culling state
     if (wasCullingEnabled) {

@@ -90,6 +90,7 @@ private:
     // Level models
     Model houseModel;
     Model treeModel;
+    Model groundModel;  // Textured floor (rock wall platform)
     glm::vec3 housePosition;
     float houseScale;
 
