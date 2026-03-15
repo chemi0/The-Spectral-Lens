@@ -1,6 +1,7 @@
 # The Spectral Lens
 
 2D/3D OpenGL 3.3+ project. 
+Graphical interactive set that turns into a variety of 3D minigames for the player to play through and beat.
 Graphical interactive set containing a "fake" landscape, and a hidden one, which you can explore using "Spectral Lens" and discover different moving entities inside of it.
 Interacting with the entities will push you into a 3D world of different mini-games, all based on the same movement the entities have in the 2D landscape.
 Framerate is locked to 75FPS.
